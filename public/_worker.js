@@ -68,7 +68,7 @@ router.get(
             let d1Name = `D1_${tenant}`;
             logs.push(`D1 Name :>${d1Name}<`) 
             console.log(`D1 Name :>${d1Name}<`) 
-            var d1 = createD1(env,d1Name);
+            var d1 = await createD1(env,d1Name);
             logs.push(`d1 created :>${d1.result.uuid}<`)
             console.log(`d1 created :>${d1.result.uuid}<`)
             var creation = `drop table if exists data;
