@@ -55,17 +55,25 @@ router.get(
     withParams,
     async (request, env, context, tenant) =>
         {
+            const appName = 'cf-d1-provisioning';
+            var logs = []
+            logs.push(`new D1 for :>${tenant}<`) 
             if (tenant) {
             let accountId = env.API_KEY
+            logs.push(`accountId :>${accountId}<`)
             let d1Name = `D1_${tenant}`;
+            logs.push(`D1 Name :>${d1Name}<`) 
             var d1id = createD1(env,d1Name);
+            logs.push(`d1 created :>${d1.result.uuid}<`)
             var creation = `drop table if exists data;
             create table data (id INT PRIMARY KEY, value TEXT);`;
             sql = await ExecuteSQL(context, creation, d1.result.uuid);
+            logs.push(`sql create executed`)
             bind = await BindD1(context, d1.result.uuid, appName);
-            RenderJSON(env,request,{"d1":d1,"bind":bind});
+            logs.push(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
+            RenderJSON(env,request,{"d1":d1,"bind":bind,"sql":sql,"logs":logs});
             }
-            return RenderJSON(env,request,{"error":"no tenant name"});
+            return RenderJSON(env,request,{"error":"no tenant name","logs":logs});
         }
 )
 
@@ -76,7 +84,7 @@ router.get('/d1/:tenant',
 withParams,
 async (request, env, tenant) =>
     {
-        return RenderJSON(env,request,["data1","data2","data3"]);
+        return RenderJSON(env,request,{tenant:["data1","data2","data3"]});
     }
 )
 
