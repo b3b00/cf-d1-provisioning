@@ -11,7 +11,7 @@ async function request(uri, key, method, body) {
         headers: {
             Authorization: `Bearer ${key}`,
         },
-        mode: 'cors',
+ //       mode: 'cors',
         cache: 'default',
     }
     if (body) {
