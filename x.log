@@ -1,0 +1,182 @@
+{
+  "outcome": "exception",
+  "scriptName": "pages-worker--1733278-production",
+  "diagnosticsChannelEvents": [],
+  "exceptions": [
+    {
+      "name": "TypeError",
+      "message": "Incorrect type for Promise: the Promise did not resolve to 'Response'.",
+      "timestamp": 1701979061150
+    }
+  ],
+  "logs": [
+    {
+      "message": [
+        "routing ",
+        "[object Object]"
+      ],
+      "level": "log",
+      "timestamp": 1701979061150
+    },
+    {
+      "message": [
+        "new D1 for :>g<"
+      ],
+      "level": "log",
+      "timestamp": 1701979061150
+    },
+    {
+      "message": [
+        "accountId :>H2kXxUQ1wJxnv0Sr4gNGVjUZ-6p3NrT-KRP5z9mR<"
+      ],
+      "level": "log",
+      "timestamp": 1701979061150
+    },
+    {
+      "message": [
+        "D1 Name :>D1_g<"
+      ],
+      "level": "log",
+      "timestamp": 1701979061150
+    },
+    {
+      "message": [
+        "CreateD1(D1_g)"
+      ],
+      "level": "log",
+      "timestamp": 1701979061150
+    },
+    {
+      "message": [
+        {
+          "name": "D1_g"
+        }
+      ],
+      "level": "log",
+      "timestamp": 1701979061150
+    },
+    {
+      "message": [
+        "POST(/accounts/57ca8e669d1a64e750688a1de13c1745/d1/database,H2kXxUQ1wJxnv0Sr4gNGVjUZ-6p3NrT-KRP5z9mR)"
+      ],
+      "level": "log",
+      "timestamp": 1701979061150
+    },
+    {
+      "message": [
+        {
+          "name": "D1_g"
+        }
+      ],
+      "level": "log",
+      "timestamp": 1701979061150
+    },
+    {
+      "message": [
+        "options [object Object]",
+        {
+          "method": "POST",
+          "headers": {
+            "Authorization": "Bearer H2kXxUQ1wJxnv0Sr4gNGVjUZ-6p3NrT-KRP5z9mR"
+          },
+          "body": "{\"name\":\"D1_g\"}"
+        }
+      ],
+      "level": "log",
+      "timestamp": 1701979061150
+    },
+    {
+      "message": [
+        "sending....https://api.cloudflare.com/client/v4/accounts/57ca8e669d1a64e750688a1de13c1745/d1/database"
+      ],
+      "level": "log",
+      "timestamp": 1701979061150
+    }
+  ],
+  "eventTimestamp": 1701979061137,
+  "event": {
+    "request": {
+      "url": "https://cf-d1-provisioning.pages.dev/d1/new/g",
+      "method": "GET",
+      "headers": {
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "accept-encoding": "gzip",
+        "accept-language": "fr-FR",
+        "cf-connecting-ip": "2a02:8440:714d:b7a:0:49:d9fa:2a01",
+        "cf-ipcountry": "FR",
+        "cf-ray": "831f56cc180822b4",
+        "cf-visitor": "{\"scheme\":\"https\"}",
+        "connection": "Keep-Alive",
+        "host": "cf-d1-provisioning.pages.dev",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "cross-site",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Android 12; Mobile; rv:122.0) Gecko/122.0 Firefox/122.0",
+        "x-forwarded-proto": "https",
+        "x-real-ip": "2a02:8440:714d:b7a:0:49:d9fa:2a01"
+      },
+      "cf": {
+        "clientTcpRtt": 6,
+        "longitude": "-2.96920",
+        "httpProtocol": "HTTP/2",
+        "tlsCipher": "AEAD-AES128-GCM-SHA256",
+        "continent": "EU",
+        "asn": 15557,
+        "clientAcceptEncoding": "gzip, deflate, br",
+        "country": "FR",
+        "isEUCountry": "1",
+        "tlsClientAuth": {
+          "certIssuerDNLegacy": "",
+          "certIssuerSKI": "",
+          "certSubjectDNRFC2253": "",
+          "certSubjectDNLegacy": "",
+          "certFingerprintSHA256": "",
+          "certNotBefore": "",
+          "certSKI": "",
+          "certSerial": "",
+          "certIssuerDN": "",
+          "certVerified": "NONE",
+          "certNotAfter": "",
+          "certSubjectDN": "",
+          "certPresented": "0",
+          "certRevoked": "0",
+          "certIssuerSerial": "",
+          "certIssuerDNRFC2253": "",
+          "certFingerprintSHA1": ""
+        },
+        "tlsExportedAuthenticator": {
+          "clientFinished": "bccf623a20cb1128ec96278225d899c75430ec986b76dd2053387f85ed68da71",
+          "clientHandshake": "246460f1faf1d4cb362674db3d71dd7d92339ae57ab217931ecad46d1260a127",
+          "serverHandshake": "f0e2c0cf0023de90b60b7febf51b96b7cdb0c45d28cd84ba1aaaa2add35f4d94",
+          "serverFinished": "8d77be27353d02f75839ee8a89cc0176810abcfa4e548ae3f469646d8167ccf3"
+        },
+        "tlsVersion": "TLSv1.3",
+        "colo": "CDG",
+        "timezone": "Europe/Paris",
+        "latitude": "48.06460",
+        "edgeRequestKeepAliveStatus": 1,
+        "requestPriority": "weight=42;exclusive=0;group=13;group-weight=241",
+        "verifiedBotCategory": "",
+        "region": "Brittany",
+        "regionCode": "BRE",
+        "asOrganization": "SFR",
+        "pagesHostName": "cf-d1-provisioning.pages.dev",
+        "botManagement": {
+          "corporateProxy": false,
+          "verifiedBot": false,
+          "jsDetection": {
+            "passed": false
+          },
+          "staticResource": false,
+          "detectionIds": {},
+          "score": 99
+        }
+      }
+    },
+    "response": {
+      "status": 500
+    }
+  },
+  "id": 0
+}
