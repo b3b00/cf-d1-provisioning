@@ -1,7 +1,7 @@
 // NOTE : _worker.js must be place at the root of the output dir == ./public for this app
 
 import { Router, withParams } from 'itty-router'
-import Mustache, { render } from 'mustache'
+// import Mustache, { render } from 'mustache'
 import {createD1,bindD1,executeSQL} from './d1.js'
 
 const router = Router()
@@ -24,17 +24,17 @@ async function GetFromOrCatchOrFetch(request, ttl, fetcher) {
     return response;
 }
 
-async function RenderTemplate(env, request, templatePath, view, mimeType) {
-    var url = new URL(request.url)
-    var templateUrl = `${url.origin}/${templatePath}`
-    var templateRequest = new Request(templateUrl, request)
-    var response = await env.ASSETS.fetch(templateRequest)
-    var text = await response.text()
-    var output = Mustache.render(text, view)
-    var response = new Response(output)
-    response.headers.set('Content-Type', mimeType)
-    return response
-}
+// async function RenderTemplate(env, request, templatePath, view, mimeType) {
+//     var url = new URL(request.url)
+//     var templateUrl = `${url.origin}/${templatePath}`
+//     var templateRequest = new Request(templateUrl, request)
+//     var response = await env.ASSETS.fetch(templateRequest)
+//     var text = await response.text()
+//     var output = Mustache.render(text, view)
+//     var response = new Response(output)
+//     response.headers.set('Content-Type', mimeType)
+//     return response
+// }
 
 async function RenderJSON(env, request, data) {
     var response = new Response(JSON.stringify(data));
@@ -42,9 +42,9 @@ async function RenderJSON(env, request, data) {
     return response;
 }
 
-async function RenderHtml(env, request, templatePath, view) {
-    return RenderTemplate(env, request, templatePath, view, 'text/html')
-}
+// async function RenderHtml(env, request, templatePath, view) {
+//     return RenderTemplate(env, request, templatePath, view, 'text/html')
+// }
 
 
 
