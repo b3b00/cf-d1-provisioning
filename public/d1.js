@@ -20,8 +20,10 @@ async function request(uri, key, method, body) {
 
     console.log(`options ${options}`, options)
 
-    console.log('sending....')
-    var r = await fetch(root + uri, options)
+    console.log('sending....'+root+uri)
+    try {
+	var r = await fetch(root + uri, options)
+	console.log('d1 fetched '+r.status);
     if (r.status == 200) {
         console.log('OK')
         var json = await r.json()
@@ -31,6 +33,12 @@ async function request(uri, key, method, body) {
         var content = await r.json()
         console.log('error ' + r.status + ' ' + r.statusText, content)
         return null
+    }
+    }
+    catch(e) {
+	console.log('exception when creating D1 instance ');
+	console.log(e);
+	return null;
     }
 }
 
