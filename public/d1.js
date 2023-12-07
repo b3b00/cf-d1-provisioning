@@ -12,7 +12,7 @@ async function request(uri, key, method, body) {
             Authorization: `Bearer ${key}`,
         },
  //       mode: 'cors',
-        cache: 'default',
+   //     cache: 'default',
     }
     if (body) {
         options.body = JSON.stringify(body)
