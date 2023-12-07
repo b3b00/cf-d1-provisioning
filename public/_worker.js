@@ -53,24 +53,31 @@ async function RenderJSON(env, request, data) {
 router.get(
     '/d1/new/:tenant',
     withParams,
-    async (request, env, context, tenant) =>
+    async (request, env) =>
         {
+            const tenant = request.params.tenant
             const appName = 'cf-d1-provisioning';
             var logs = []
+            console.log(`new D1 for :>${tenant}<`) 
             logs.push(`new D1 for :>${tenant}<`) 
             if (tenant) {
             let accountId = env.API_KEY
             logs.push(`accountId :>${accountId}<`)
+            console.log(`accountId :>${accountId}<`)
             let d1Name = `D1_${tenant}`;
             logs.push(`D1 Name :>${d1Name}<`) 
-            var d1id = createD1(env,d1Name);
+            console.log(`D1 Name :>${d1Name}<`) 
+            var d1 = createD1(env,d1Name);
             logs.push(`d1 created :>${d1.result.uuid}<`)
+            console.log(`d1 created :>${d1.result.uuid}<`)
             var creation = `drop table if exists data;
             create table data (id INT PRIMARY KEY, value TEXT);`;
             sql = await ExecuteSQL(context, creation, d1.result.uuid);
             logs.push(`sql create executed`)
+            console.log(`sql create executed`)
             bind = await BindD1(context, d1.result.uuid, appName);
             logs.push(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
+            console.log(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
             RenderJSON(env,request,{"d1":d1,"bind":bind,"sql":sql,"logs":logs});
             }
             return RenderJSON(env,request,{"error":"no tenant name","logs":logs});
@@ -82,8 +89,10 @@ router.get(
 // get all data for the given tenant
 router.get('/d1/:tenant',
 withParams,
-async (request, env, tenant) =>
+async (request, env) =>
     {
+        const tenant = request.params.tenant
+        console.log(`getting data for tenant <${tenant}>`)
         return RenderJSON(env,request,{tenant:["data1","data2","data3"]});
     }
 )
@@ -93,8 +102,11 @@ async (request, env, tenant) =>
 // should be a PUT
 router.get('/d1/set/:tenant/:data',
 withParams,
-async (request, env, context, tenant, data) =>
+async (request, env) =>
     {
+        const tenant = request.params.tenant
+        const data = request.params.data
+        console.log(`adding data <${data}> for tenant <${tenant}>`)
         return RenderJSON(env,request,{});
     })
 
@@ -105,6 +117,7 @@ router.all('*', (request, env) => {
 
 export default {
     async fetch(request, environment, context) {
+        console.log('routing ',request);
         return router.handle(request, environment, context)
     },
     async scheduled(controller, environment, context) {
