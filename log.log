@@ -1,0 +1,28 @@
+  (log) routing  [object Object]
+  (log) assets handler
+GET https://c157ac92.cf-d1-provisioning.pages.dev/favicon.ico - Ok @ 07/12/2023 20:40:29
+  (log) routing  [object Object]
+  (log) assets handler
+GET https://c157ac92.cf-d1-provisioning.pages.dev/d1/new/l - Exception Thrown @ 07/12/2023 20:40:37
+  (log) routing  [object Object]
+  (log) new D1 for :>l<
+  (log) accountId :>H2kXxUQ1wJxnv0Sr4gNGVjUZ-6p3NrT-KRP5z9mR<
+  (log) D1 Name :>D1_l<
+  (log) CreateD1(D1_l)
+  (log) { name: 'D1_l' }
+  (log) POST(/accounts/57ca8e669d1a64e750688a1de13c1745/d1/database,H2kXxUQ1wJxnv0Sr4gNGVjUZ-6p3NrT-KRP5z9mR)
+  (log) { name: 'D1_l' }
+  (log) options [object Object] {
+  method: 'POST',
+  headers: { Authorization: 'Bearer H2kXxUQ1wJxnv0Sr4gNGVjUZ-6p3NrT-KRP5z9mR' },
+  mode: 'cors',
+  cache: 'default',
+  body: '{"name":"D1_l"}'
+}
+  (log) sending....https://api.cloudflare.com/client/v4/accounts/57ca8e669d1a64e750688a1de13c1745/d1/database
+  (log) exception when creating D1 instance 
+  (log) Error: The 'mode' field on 'RequestInitializerDict' is not implemented.
+  (log) d1 created
+  (log) null
+  (log) ---------------------------------
+✘ [ERROR]   TypeError: Incorrect type for Promise: the Promise did not resolve to 'Response'.
