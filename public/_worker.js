@@ -1,9 +1,8 @@
 // NOTE : _worker.js must be place at the root of the output dir == ./public for this app
 
 import { Router, withParams } from 'itty-router'
-import { GetCalendar } from './calendars-routes.js'
-import { GetGroups, GetTeams } from './groups-routes.js'
 import Mustache, { render } from 'mustache'
+import {createD1,bindD1,executeSQL} from './d1.js'
 
 const router = Router()
 
@@ -56,7 +55,17 @@ router.get(
     withParams,
     async (request, env, context, tenant) =>
         {
-            return RenderJSON(env,request,{});
+            if (tenant) {
+            let accountId = env.API_KEY
+            let d1Name = `D1_${tenant}`;
+            var d1id = createD1(env,d1Name);
+            var creation = `drop table if exists data;
+            create table data (id INT PRIMARY KEY, value TEXT);`;
+            sql = await ExecuteSQL(context, creation, d1.result.uuid);
+            bind = await BindD1(context, d1.result.uuid, appName);
+            RenderJSON(env,request,{"d1":d1,"bind":bind});
+            }
+            return RenderJSON(env,request,{"error":"no tenant name"});
         }
 )
 

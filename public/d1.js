@@ -59,15 +59,15 @@ async function GetProjectId(context, projectName) {
     return null
 }
 
-async function CreateD1(context, dbName) {
+export async function createD1(env, dbName) {
     var payLoad = {
         name: dbName,
     }
     console.log(`CreateD1(${dbName})`)
     console.log(payLoad)
     var d1 = await post(
-        `/accounts/${context.env.ACCOUNT_ID}/d1/database`,
-        context.env.API_KEY,
+        `/accounts/${env.ACCOUNT_ID}/d1/database`,
+        env.API_KEY,
         payLoad
     )
     console.log('d1 created')
@@ -76,13 +76,13 @@ async function CreateD1(context, dbName) {
     return d1
 }
 
-async function ExecuteSQL(context, sql, d1Id) {
-    var uri = `/accounts/${context.env.ACCOUNT_ID}/d1/database/${d1Id}/query`
-    var result = await post(uri, context.env.API_KEY, { sql })
+export async function executeSQL(env, sql, d1Id) {
+    var uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${d1Id}/query`
+    var result = await post(uri, env.API_KEY, { sql })
     return result
 }
 
-async function BindD1(context, d1Id, projectName) {
+export async function bindD1(env, d1Id, projectName) {
     var payload = {
         deployment_configs: {
             production: {
@@ -94,8 +94,8 @@ async function BindD1(context, d1Id, projectName) {
             },
         }        
     }
-    var uri=`/accounts/${context.env.ACCOUNT_ID}/pages/projects/${projectName}`;
-    return await patch(uri,context.env.API_KEY,payload);
+    var uri=`/accounts/${env.ACCOUNT_ID}/pages/projects/${projectName}`;
+    return await patch(uri,env.API_KEY,payload);
 }
 
 export async function onRequest(context) {
