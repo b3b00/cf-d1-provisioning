@@ -56,6 +56,7 @@ router.get(
     async (request, env) =>
         {
             const tenant = request.params.tenant
+            try {            
             const appName = 'cf-d1-provisioning';
             var logs = []
             console.log(`new D1 for :>${tenant}<`) 
@@ -81,6 +82,13 @@ router.get(
             RenderJSON(env,request,{"d1":d1,"bind":bind,"sql":sql,"logs":logs});
             }
             return RenderJSON(env,request,{"error":"no tenant name","logs":logs});
+        }
+        catch(e) {
+            return {
+                'error':`error while provisioning D1 for :>${tenant}}<`,
+                'exception':e
+            };
+        }
         }
 )
 
