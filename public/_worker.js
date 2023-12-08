@@ -73,10 +73,10 @@ router.get(
             console.log(`d1 created :>${d1.result.uuid}<`)
             var creation = `drop table if exists data;
             create table data (id INT PRIMARY KEY, value TEXT);`;
-            sql = await executeSQL(context, creation, d1.result.uuid);
+            sql = await executeSQL(env, creation, d1.result.uuid);
             logs.push(`sql create executed`)
             console.log(`sql create executed`)
-            bind = await bindD1(context, d1.result.uuid, appName);
+            bind = await bindD1(env, d1.result.uuid, appName);
             logs.push(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
             console.log(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
             RenderJSON(env,request,{"d1":d1,"bind":bind,"sql":sql,"logs":logs});
@@ -101,6 +101,15 @@ async (request, env) =>
     {
         const tenant = request.params.tenant
         console.log(`getting data for tenant <${tenant}>`)
+
+        var d1Fromcontext = env['D1_'+tenant]        
+        console.log("d1Fromcontext",d1Fromcontext);
+        const { results } = await d1Fromcontext.prepare(
+            'SELECT * FROM data'
+        ).all()
+        console.log(results);
+
+
         return RenderJSON(env,request,{tenant:["data1","data2","data3"]});
     }
 )
