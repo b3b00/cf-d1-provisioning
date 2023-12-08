@@ -26,12 +26,14 @@ async function request(uri, key, method, body) {
 	console.log('d1 fetched '+r.status);
     if (r.status == 200) {
         console.log('OK')
-        var json = await r.json()
-        console.log(json)
-        return json
+        var content = await r.text();
+        var d1 = JSON.parse(content);
+        //var d1 = await r.json()
+        console.log(d1)
+        return d1
     } else {
-        var content = await r.json()
-        console.log('error ' + r.status + ' ' + r.statusText, content)
+        const content = await r.text();
+        console.log(`error >${r.status}< :>${r.statusText}< ::>${content}<`);
         return null
     }
     }
@@ -43,6 +45,7 @@ async function request(uri, key, method, body) {
 }
 
 async function post(uri, key, body) {
+    console.log(`POST >${uri}< >${key}<`,body)
     return await request(uri, key, 'POST', body)
 }
 
@@ -71,10 +74,11 @@ export async function createD1(env, dbName) {
     var payLoad = {
         name: dbName,
     }
-    console.log(`CreateD1(${dbName})`)
+    const uri = `/accounts/${env.ACCOUNT_ID}/d1/database`;
+    console.log(`CreateD1(${dbName}) : ${uri}`);
     console.log(payLoad)
     var d1 = await post(
-        `/accounts/${env.ACCOUNT_ID}/d1/database`,
+        uri,
         env.API_KEY,
         payLoad
     )
@@ -85,7 +89,9 @@ export async function createD1(env, dbName) {
 }
 
 export async function executeSQL(env, sql, d1Id) {
+    console.log(`d1.executeSQL(${sql},${d1Id})`);
     var uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${d1Id}/query`
+    console.log(`  => ${uri}`);
     var result = await post(uri, env.API_KEY, { sql })
     return result
 }

@@ -73,10 +73,10 @@ router.get(
             console.log(`d1 created :>${d1.result.uuid}<`)
             var creation = `drop table if exists data;
             create table data (id INT PRIMARY KEY, value TEXT);`;
-            sql = await ExecuteSQL(context, creation, d1.result.uuid);
+            sql = await executeSQL(context, creation, d1.result.uuid);
             logs.push(`sql create executed`)
             console.log(`sql create executed`)
-            bind = await BindD1(context, d1.result.uuid, appName);
+            bind = await bindD1(context, d1.result.uuid, appName);
             logs.push(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
             console.log(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
             RenderJSON(env,request,{"d1":d1,"bind":bind,"sql":sql,"logs":logs});
@@ -124,8 +124,7 @@ router.all('*', (request, env) => {
 })
 
 export default {
-    async fetch(request, environment, context) {
-        console.log('routing ',request);
+    async fetch(request, environment, context) {        
         return router.handle(request, environment, context)
     },
     async scheduled(controller, environment, context) {
