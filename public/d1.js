@@ -38,7 +38,7 @@ async function request(uri, key, method, body) {
     }
     }
     catch(e) {
-	console.log('exception when creating D1 instance ');
+	console.log('exception when requesting CF');
 	console.log(e);
 	return null;
     }
@@ -93,7 +93,7 @@ export async function executeSQL(env, sql, d1Id) {
     console.log(`d1.executeSQL(${sql},${d1Id})`);
     var uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${d1Id}/query`
     console.log(`  => ${uri}`);
-    var result = await post(uri, env.API_KEY, { sql })
+	var result = await post(uri, env.API_KEY, { "sql": sql })
 	return result
     }
     catch(e) {
