@@ -89,11 +89,17 @@ export async function createD1(env, dbName) {
 }
 
 export async function executeSQL(env, sql, d1Id) {
+    try {
     console.log(`d1.executeSQL(${sql},${d1Id})`);
     var uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${d1Id}/query`
     console.log(`  => ${uri}`);
     var result = await post(uri, env.API_KEY, { sql })
-    return result
+	return result
+    }
+    catch(e) {
+	console.log("error while executing SQL ",sql);
+	console.log(e);
+    }
 }
 
 export async function bindD1(env, d1Id, projectName) {
@@ -145,8 +151,8 @@ export async function onRequest(context) {
     console.log('*************************************')
         console.log(`CREATE D1 database >${d1Name}<`)
         d1 = await CreateD1(context, d1Name)
-        var creation = `drop table if exists calendars;
-        create table calendars (groupe TEXT, team TEXT, calendar TEXT, type INTEGER, PRIMARY KEY(groupe,team, type));`
+        var creation = `drop table if exists datas;
+        create table data (id  TEXT, data TEXT);`
         sql = await ExecuteSQL(context, creation, d1.result.uuid)
         bind = await BindD1(context, d1.result.uuid, appName)
 
