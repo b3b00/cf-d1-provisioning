@@ -103,6 +103,7 @@ export async function executeSQL(env, sql, d1Id) {
 }
 
 export async function bindD1(env, d1Id, projectName) {
+console.log("bon donc project "+projectName+" to d1 "+d1Id)
     var payload = {
         deployment_configs: {
             production: {
@@ -114,7 +115,9 @@ export async function bindD1(env, d1Id, projectName) {
             },
         }        
     }
+
     var uri=`/accounts/${env.ACCOUNT_ID}/pages/projects/${projectName}`;
+console.log(`PATCH ${uri}`,payload)
     return await patch(uri,env.API_KEY,payload);
 }
 
