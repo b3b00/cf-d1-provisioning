@@ -2,7 +2,7 @@
 
 import { Router, withParams } from 'itty-router'
 // import Mustache, { render } from 'mustache'
-import {createD1,bindD1,executeSQL,deleteD1} from './d1.js'
+import {createD1,bindD1,executeSQL,deleteD1, getD1Database, getD1Databases} from './d1.js'
 
 const router = Router()
 
