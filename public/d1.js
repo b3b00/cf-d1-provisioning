@@ -91,7 +91,7 @@ export async function deleteD1(env, dbName) {
 	var d1 = await getD1Database(dbName);
 	if (d1) {
 	    const uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${db1.uuid}`;
-    console.log(`CreateD1(${dbName}) : ${uri}`);
+    console.log(`deleteD1(${dbName}) : ${uri}`);
     console.log(payLoad)
     var d1 = await del(
         uri,
