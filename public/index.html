@@ -22,7 +22,13 @@
 const create = async () => {
     var tenantField = document.getElementById('newtenant');
     var tenant = tenantField.value;
-    await fetch('d1/new/'+tenant);
+    await fetch('POST','d1/'+tenant);
+}
+
+  const delete = async () => {
+    var tenantField = document.getElementById('newtenant');
+    var tenant = tenantField.value;
+    await fetch('DELETE','d1/'+tenant);
 }
 
 const get = async () => {
@@ -45,6 +51,11 @@ const push = async () => {
 <label for="newtenant">tenant</label>
 <input id="newtenant" name="tenant" type="text"></input>
 <button onclick="create();">new</button>
+
+<h1>Delte D1</h1> 
+<label for="newtenant">tenant</label>
+<input id="newtenant" name="tenant" type="text"></input>
+<button onclick="delete();">delete</button>
 
 <h1>Get D1 (get data)</h1> 
 <label for="tenantdata">tenant</label>

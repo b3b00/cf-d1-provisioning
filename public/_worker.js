@@ -50,8 +50,8 @@ async function RenderJSON(env, request, data) {
 
 // provision and bind a D1 instance with given tenant name
 // should be a POST !
-router.get(
-    '/d1/new/:tenant',
+router.post(
+    '/d1/:tenant',
     withParams,
     async (request, env) =>
         {
@@ -86,6 +86,41 @@ router.get(
         catch(e) {
             return {
                 'error':`error while provisioning D1 for :>${tenant}}<`,
+                'exception':e
+            };
+        }
+        }
+)
+
+// should be a POST !
+router.delete(
+    '/d1/:tenant',
+    withParams,
+    async (request, env) =>
+        {
+            const tenant = request.params.tenant
+            try {            
+            const appName = 'cf-d1-provisioning';
+            var logs = []
+            console.log(`delete D1 for :>${tenant}<`) 
+            logs.push(`delete D1 for :>${tenant}<`) 
+            if (tenant) {
+            let accountId = env.API_KEY
+            logs.push(`accountId :>${accountId}<`)
+            console.log(`accountId :>${accountId}<`)
+            let d1Name = `D1_${tenant}`;
+            logs.push(`D1 Name :>${d1Name}<`) 
+            console.log(`D1 Name :>${d1Name}<`) 
+            var d1 = await deleteD1(env,d1Name);
+            logs.push(`d1 deleted :>${d1.result.uuid}<`)
+            console.log(`d1 deleted :>${d1.result.uuid}<`)
+     
+            }
+            return RenderJSON(env,request,{"error":"no tenant name","logs":logs});
+        }
+        catch(e) {
+            return {
+                'error':`error while deleting D1 for :>${tenant}}<`,
                 'exception':e
             };
         }

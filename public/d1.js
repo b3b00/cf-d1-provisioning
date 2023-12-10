@@ -57,6 +57,10 @@ async function get(uri, key) {
     return await request(uri, key, 'GET', undefined)
 }
 
+async function delete(uri, key) {
+    return await request(uri, key, 'DELETE' , undefined);
+}
+
 async function GetProjectId(context, projectName) {
     var projectInfo = await get(
         `/accounts/${context.env.ACCOUNT_ID}/pages/projects/${projectName}`,
@@ -70,19 +74,34 @@ async function GetProjectId(context, projectName) {
     return null
 }
 
+export async function deleteD1(env; dbName) {
+    const uri = `/accounts/${env.ACCOUNT_ID}/d1/database`;
+    console.log(`CreateD1(${dbName}) : ${uri}`);
+    console.log(payLoad)
+    var d1 = await delete(
+        uri,
+        env.API_KEY,
+        payLoad
+    )
+    console.log('D1.js :: d1 deleted')
+    console.log(d1)
+    console.log('---------------------------------')
+    return d1
+}
+
 export async function createD1(env, dbName) {
     var payLoad = {
         name: dbName,
     }
     const uri = `/accounts/${env.ACCOUNT_ID}/d1/database`;
-    console.log(`CreateD1(${dbName}) : ${uri}`);
+    console.log(`D1.js :: CreateD1(${dbName}) : ${uri}`);
     console.log(payLoad)
     var d1 = await post(
         uri,
         env.API_KEY,
         payLoad
     )
-    console.log('d1 created')
+    console.log('D1.js :: d1 created')
     console.log(d1)
     console.log('---------------------------------')
     return d1
@@ -90,14 +109,14 @@ export async function createD1(env, dbName) {
 
 export async function executeSQL(env, sql, d1Id) {
     try {
-    console.log(`d1.executeSQL(${sql},${d1Id})`);
+	console.log(`D1.js :: d1.executeSQL(${sql},${d1Id})`);
     var uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${d1Id}/query`
-    console.log(`  => ${uri}`);
+	console.log(`D1.js ::  => ${uri}`);
 	var result = await post(uri, env.API_KEY, { "sql": sql })
 	return result
     }
     catch(e) {
-	console.log("error while executing SQL ",sql);
+	console.log("D1.js :: error while executing SQL ",sql);
 	console.log(e);
     }
 }
