@@ -75,6 +75,7 @@ async function GetProjectId(context, projectName) {
 }
 
 export async function deleteD1(env, dbName) {
+    try {
     const uri = `/accounts/${env.ACCOUNT_ID}/d1/database`;
     console.log(`CreateD1(${dbName}) : ${uri}`);
     console.log(payLoad)
@@ -86,7 +87,11 @@ export async function deleteD1(env, dbName) {
     console.log('D1.js :: d1 deleted')
     console.log(d1)
     console.log('---------------------------------')
-    return d1
+	return d1
+    }
+    catch(e) {
+	console.log('error while deleting'+dbName,e);
+    }
 }
 
 export async function createD1(env, dbName) {

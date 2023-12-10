@@ -119,10 +119,10 @@ router.delete(
             return RenderJSON(env,request,{"error":"no tenant name","logs":logs});
         }
         catch(e) {
-            return {
-                'error':`error while deleting D1 for :>${tenant}}<`,
-                'exception':e
-            };
+            console.log(
+                `error while deleting D1 for :>${tenant}}<`);
+            console.log(e);
+            
         }
         }
 )
