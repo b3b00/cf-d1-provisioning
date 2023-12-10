@@ -74,13 +74,13 @@ async function GetProjectId(context, projectName) {
     return null
 }
 
-async function getD1Databases(env) {
+export async function getD1Databases(env) {
     const list = await get(`/accounts/${env.ACCOUNT_ID}/d1/database`,env.API_KEY);
     console.log(list);
     return list;
 }
 
-async function getD1Database(env, name) {
+export async function getD1Database(env, name) {
     const databases = await getD1Databases();
     const d1 = databases.filter(x => x.name == name).first();
     return d1;
