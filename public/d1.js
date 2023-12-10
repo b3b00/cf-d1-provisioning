@@ -101,15 +101,16 @@ export async function deleteD1(env, dbName) {
     console.log('D1.js :: d1 deleted')
     console.log(d1)
     console.log('---------------------------------')
-	return d1
+	    return d1;
+	}
+    else {
+	console.log(`D1 ${dbName} not found`);
+    }
     }
     catch(e) {
 	console.log('error while deleting'+dbName,e);
     }
-    }
-    else {
-	console.log(`D1 ${dbName} not found`);
-    }
+    
 }
 
 export async function createD1(env, dbName) {
