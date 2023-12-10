@@ -76,13 +76,13 @@ async function GetProjectId(context, projectName) {
 
 export async function getD1Databases(env) {
     const list = await get(`/accounts/${env.ACCOUNT_ID}/d1/database`,env.API_KEY);
-    console.log(list);
-    return list;
+    console.log(list.result);
+    return list.result;
 }
 
 export async function getD1Database(env, name) {
     const databases = await getD1Databases(env);
-    const d1 = databases.filter(x => x.name == name).first();
+    const d1 = databases.filter(x => x.name == name)[0];
     return d1;
 }
 
@@ -90,7 +90,7 @@ export async function deleteD1(env, dbName) {
     try {
 	var d1 = await getD1Database(env, dbName);
 	if (d1) {
-	    const uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${db1.uuid}`;
+	    const uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${d1.uuid}`;
     console.log(`deleteD1(${dbName}) : ${uri}`);
     console.log(payLoad)
     var d1 = await del(
