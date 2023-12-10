@@ -38,7 +38,7 @@ const get = async () => {
 }
 
 const put = async () => {
-    var tenantField = document.getElementById('tenantdata',{method:'PUT');
+    var tenantField = document.getElementById('tenantdata',{method:'PUT'});
     var tenant = tenantField.value;
     await fetch('d1/'+tenant);
 }
