@@ -22,17 +22,23 @@
 const create = async () => {
     var tenantField = document.getElementById('newtenant');
     var tenant = tenantField.value;
-    await fetch('POST','d1/'+tenant);
+    await fetch('d1/'+tenant,{method:'POST'});
 }
 
 const del = async () => {
     var tenantField = document.getElementById('newtenant');
     var tenant = tenantField.value;
-    await fetch('DELETE','d1/'+tenant);
+    await fetch('d1/'+tenant, {method:'DELETE'});
 }
 
 const get = async () => {
     var tenantField = document.getElementById('tenantdata');
+    var tenant = tenantField.value;
+    await fetch('d1/'+tenant);
+}
+
+const put = async () => {
+    var tenantField = document.getElementById('tenantdata',{method:'PUT');
     var tenant = tenantField.value;
     await fetch('d1/'+tenant);
 }
