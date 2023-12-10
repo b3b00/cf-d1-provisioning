@@ -81,14 +81,14 @@ export async function getD1Databases(env) {
 }
 
 export async function getD1Database(env, name) {
-    const databases = await getD1Databases();
+    const databases = await getD1Databases(env);
     const d1 = databases.filter(x => x.name == name).first();
     return d1;
 }
 
 export async function deleteD1(env, dbName) {
     try {
-	var d1 = await getD1Database(dbName);
+	var d1 = await getD1Database(env, dbName);
 	if (d1) {
 	    const uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${db1.uuid}`;
     console.log(`deleteD1(${dbName}) : ${uri}`);
