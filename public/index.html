@@ -26,7 +26,7 @@ const create = async () => {
 }
 
 const del = async () => {
-    var tenantField = document.getElementById('newtenant');
+    var tenantField = document.getElementById('oldtenant');
     var tenant = tenantField.value;
     await fetch('d1/'+tenant, {method:'DELETE'});
 }
@@ -59,8 +59,8 @@ const push = async () => {
 <button onclick="create();">new</button>
 
 <h1>Delte D1</h1> 
-<label for="newtenant">tenant</label>
-<input id="newtenant" name="tenant" type="text"></input>
+<label for="oldtenant">tenant</label>
+<input id="oldtenant" name="tenant" type="text"></input>
 <button onclick="del();">delete</button>
 
 <h1>Get D1 (get data)</h1> 
