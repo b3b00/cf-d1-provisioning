@@ -92,11 +92,9 @@ export async function deleteD1(env, dbName) {
 	if (d1) {
 	    const uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${d1.uuid}`;
     console.log(`deleteD1(${dbName}) : ${uri}`);
-    console.log(payLoad)
-    var d1 = await del(
+      var d1 = await del(
         uri,
-        env.API_KEY,
-        payLoad
+        env.API_KEY  
     )
     console.log('D1.js :: d1 deleted')
     console.log(d1)
