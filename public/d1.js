@@ -57,7 +57,7 @@ async function get(uri, key) {
     return await request(uri, key, 'GET', undefined)
 }
 
-async function delete(uri, key) {
+async function del(uri, key) {
     return await request(uri, key, 'DELETE' , undefined);
 }
 
@@ -74,11 +74,11 @@ async function GetProjectId(context, projectName) {
     return null
 }
 
-export async function deleteD1(env; dbName) {
+export async function deleteD1(env, dbName) {
     const uri = `/accounts/${env.ACCOUNT_ID}/d1/database`;
     console.log(`CreateD1(${dbName}) : ${uri}`);
     console.log(payLoad)
-    var d1 = await delete(
+    var d1 = await del(
         uri,
         env.API_KEY,
         payLoad
