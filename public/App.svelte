@@ -1,7 +1,11 @@
 <script lang="javascript">
 
+
+
 import {onMount} from 'svelte';
 
+export let name = ""; 
+console.log('building App.svelte');
 onMount(async () => {
     console.log("mounting svelte app");
     const dbs = await getAllDatabases();
@@ -55,6 +59,7 @@ const addData = async () => {
 </script>
 
 <div>
+    <h1>{name}</h1>
     <table>
 {#each databases as database}    
     <tr><td>{database.uuid}</td><td>{database.name}</td>        
@@ -62,12 +67,12 @@ const addData = async () => {
         <td><span style="cursor: pointer;" on:click={() => del(database.uuid)} on:keydown={()  => {del(database.name)}} role="button" tabindex="0">Delete</span></td></tr>
 {/each}
 
-<h1>Manage databases</h1> 
+<h2>Manage databases</h2> 
 <label for="newtenant">tenant</label>
 <input id="newtenant" name="tenant" type="text" bind:value={newTenant} on:change={create}/>
 </table>
 
-<h1>data</h1>
+<h2>data</h2>
 <table>
 {#each data as row}
 <tr><td>{row.id}</td><td>{row.data}</td></tr>    
