@@ -35,6 +35,9 @@
 
 	const deleteDb = async (tenant) => {    
 		await fetch('d1/'+tenant, {method:'DELETE'});
+		const dbs = await getAllDatabases();
+		console.log("databases are ::",dbs);
+		databases = dbs;
 	}
 
 	const selectDb = async (tenant) => {        
@@ -44,6 +47,9 @@
 
 	const createDb = async () => {				
 		await fetch('d1/'+newTenant,{method:'POST'});
+		const dbs = await getAllDatabases();
+		console.log("databases are ::",dbs);
+		databases = dbs;
 	}
 
 
@@ -66,8 +72,8 @@
     <table>
 		{#each databases as database}    
 			<tr><td>{database.uuid}</td><td>{database.name}</td>        
-				<td><span style="cursor:pointer; " on:click={()  => {selectDb(database.name)}} on:keydown={()  => {selectDb(database.name)}} role="button" tabindex="0">Select</span></td>
-				<td><span style="cursor: pointer;" on:click={() => {deleteDb(database.uuid)}} on:keydown={()  => {deleteDb(database.name)}} role="button" tabindex="0">Delete</span></td></tr>
+				<td><span style="cursor:pointer; " on:click={()  => {selectDb(database.uuid)}} on:keydown={()  => {selectDb(database.uuid)}} role="button" tabindex="0">Select</span></td>
+				<td><span style="cursor: pointer;" on:click={() => {deleteDb(database.uuid)}} on:keydown={()  => {deleteDb(database.uuid)}} role="button" tabindex="0">Delete</span></td></tr>
 		{/each}
 	</table>
 

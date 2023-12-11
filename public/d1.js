@@ -110,14 +110,14 @@ export async function deleteD1ByName(env, dbName) {
 export async function deleteD1ByUuid(env, dbUuid) {
     try {
         const uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${dbUuid}`
-        console.log(`deleteD1(${dbName}) : ${uri}`)
+        console.log(`deleteD1(${dbUuid}) : ${uri}`)
         var d1 = await del(uri, env.API_KEY)
         console.log('D1.js :: d1 deleted')
         console.log(d1)
         console.log('---------------------------------')
         return d1
     } catch (e) {
-        console.log('error while deleting' + dbName, e)
+        console.log('error while deleting' + dbUuid, e)
     }
 }
 

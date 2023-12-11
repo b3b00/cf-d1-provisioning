@@ -123,10 +123,8 @@ router.delete('/d1/:tenant', withParams, async (request, env) => {
             let accountId = env.API_KEY
             logs.push(`accountId :>${accountId}<`)
             console.log(`accountId :>${accountId}<`)
-            let d1Uuid = `D1_${tenant}`
-            var d1 = await deleteD1ByUuid(env, d1Uuid)
-            logs.push(`d1 deleted :>${d1.result.uuid}<`)
-            console.log(`d1 deleted :>${d1.result.uuid}<`)
+            let d1Uuid = `${tenant}`
+            var d1 = await deleteD1ByUuid(env, d1Uuid)            
         }
         return RenderJSON(env, request, { error: 'no tenant name', logs: logs })
     } catch (e) {
