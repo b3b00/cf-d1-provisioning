@@ -45,7 +45,8 @@ async function GetFromOrCatchOrFetch(request, ttl, fetcher) {
 // }
 
 async function RenderJSON(env, request, data) {
-    var response = new Response(JSON.stringify(data))
+    const payload = JSON.stringify(data);
+    var response = new Response(payload);
     response.headers.set('Content-Type', 'application/json')
     return response
 }
@@ -98,13 +99,16 @@ router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
 })
 
 // get all databases
-router.getAll('/d1', withParams, async (request, env) => {
+router.get('/d1', withParams, async (request, env) => {
     try {
         console.log('getting all databases from CF');
         const databases = await getD1Databases(env)
         console.log(databases);
-        return await RenderJSON(databases)
-    } catch (e) {}
+        return await RenderJSON(env,request,databases)
+    } catch (e) {
+        console.log(e);
+        return await RenderJSON(env,request,{"exception":e});
+    }
 })
 
 // delete a database
