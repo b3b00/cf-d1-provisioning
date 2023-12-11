@@ -1,20 +1,21 @@
 {
     "name": "FSGT_TT_29",
     "private": true,
-    "module": "commonjs",
+    "type":"module",
     "version": "1.0.0",
-    "description": "package for creating workers templates",
-    "main": "index.js",
+    "description": "D1",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "format": "prettier --write '**/*.{js,css,json,md}'",
-        "dev": "wrangler pages dev ./public/ --local  --d1=D1_CALENDARS"
+        "dev": "wrangler pages dev ./public/ ",
+        "build": "rollup -c"
     },
     "author": "{{ authors }}",
     "license": "ISC",
     "devDependencies": {
         "better-sqlite3": "^8.0.1",
         "prettier": "^1.17.0"
+
     },
     "dependencies": {
         "cheerio": "^1.0.0-rc.2",
@@ -26,6 +27,14 @@
         "mustache": "^4.2.0",
         "node-fetch": "^3.3.2",
         "serverless-cloudflare-workers": "^1.2.0",
-        "sync-request": "6.0.0"
+        "sync-request": "6.0.0",
+        "@rollup/plugin-commonjs": "^24.0.0",
+        "@rollup/plugin-node-resolve": "^15.0.0",
+        "@rollup/plugin-terser": "^0.4.0",
+        "rollup": "^3.15.0",
+        "rollup-plugin-css-only": "^4.3.0",
+        "rollup-plugin-livereload": "^2.0.0",
+        "rollup-plugin-svelte": "^7.1.2",
+        "svelte": "^4.0.0"
     }
 }

@@ -7,6 +7,8 @@
     <title>D1 provisioning PoC</title>
     <meta charset="UTF-8">    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tbolt/boltcss/bolt.css">    
+    <script src="bundle.js"/>
+    <link rel='stylesheet' href='global.css'>
 <script>
 
 
@@ -14,69 +16,9 @@
 
 </head>
 
-
-
 <body>
 
-<script>
-const create = async () => {
-    var tenantField = document.getElementById('newtenant');
-    var tenant = tenantField.value;
-    await fetch('d1/'+tenant,{method:'POST'});
-}
-
-const del = async () => {
-    var tenantField = document.getElementById('oldtenant');
-    var tenant = tenantField.value;
-    await fetch('d1/'+tenant, {method:'DELETE'});
-}
-
-const get = async () => {
-    var tenantField = document.getElementById('tenantdata');
-    var tenant = tenantField.value;
-    await fetch('d1/'+tenant);
-}
-
-const put = async () => {
-    var tenantField = document.getElementById('tenantdata',{method:'PUT'});
-    var tenant = tenantField.value;
-    await fetch('d1/'+tenant);
-}
-
-const push = async () => {
-    var tenantField = document.getElementById('tenantpush');    
-    var tenant = tenantField.value;
-    var dataField = document.getElementById('datapush');
-    var data = dataField.value;
-    await fetch('d1/'+tenant);
-}
-
-</script>
-
-<h1>New D1 (create, initialize and bind)</h1> 
-<label for="newtenant">tenant</label>
-<input id="newtenant" name="tenant" type="text"></input>
-<button onclick="create();">new</button>
-
-<h1>Delte D1</h1> 
-<label for="oldtenant">tenant</label>
-<input id="oldtenant" name="tenant" type="text"></input>
-<button onclick="del();">delete</button>
-
-<h1>Get D1 (get data)</h1> 
-<label for="tenantdata">tenant</label>
-<input id="tenantdata" name="tenant" type="text"></input>
-<button onclick="get();">get</button>
-
-<h1>Push Data</h1>
-<label for="tenantpush">tenant</label>
-<input id="tenantpush" name="tenant" type="text"></input>
-<label for="dataid">id</label>
-<input id="dataid" name="dataid" type="text"></input>
-<label for="datapush">data</label>
-<input id="datapush" name="data" type="text"></input>
-<button onclick="push();">add</button>
-
+<script src="bundle.js"/>
 
 </body>
 
