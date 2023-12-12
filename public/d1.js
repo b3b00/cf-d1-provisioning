@@ -60,17 +60,14 @@ async function del(uri, key) {
     return await request(uri, key, 'DELETE', undefined)
 }
 
-export async function GetProjectId(context, projectName) {
+export async function GetProject(env, projectName) {
     var projectInfo = await get(
-        `/accounts/${context.env.ACCOUNT_ID}/pages/projects/${projectName}`,
-        context.env.API_KEY
+        `/accounts/${env.ACCOUNT_ID}/pages/projects/${projectName}`,
+        env.API_KEY
     )
-    console.log('getProjectId get :', projectInfo)
+    console.log('projectInfo :', projectInfo);
 
-    if (projectInfo) {
-        return projectInfo.result.id
-    }
-    return null
+    return projectInfo.result;
 }
 
 export async function getD1Databases(env) {
@@ -138,9 +135,9 @@ export async function createD1(env, dbName) {
 export async function executeSQL(env, sql, d1Id) {
     try {
         console.log(`D1.js :: d1.executeSQL(${sql},${d1Id})`)
-        var uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${d1Id}/query`
+        const uri = `/accounts/${env.ACCOUNT_ID}/d1/database/${d1Id}/query`
         console.log(`D1.js ::  => ${uri}`)
-        var result = await post(uri, env.API_KEY, { sql: sql })
+        const result = await post(uri, env.API_KEY, { sql: sql })
         return result
     } catch (e) {
         console.log('D1.js :: error while executing SQL ', sql)
@@ -148,16 +145,18 @@ export async function executeSQL(env, sql, d1Id) {
     }
 }
 
-export async function bindD1(env, d1Id, projectName) {
-    console.log('bon donc project ' + projectName + ' to d1 ' + d1Id)
+export async function bindD1(env, d1Id, bindingName, projectName) {
+    console.log(`bind project ${projectName} -- ${bindingName}-${d1Id}`);
+
+    const project = await GetProject(env, projectName)
+
+    const binding = project.deployment_configs.production.d1_databases;
+    binding[bindingName] = { id: d1Id }
+
     var payload = {
         deployment_configs: {
             production: {
-                d1_databases: {
-                    D1_BINDING: {
-                        id: d1Id,
-                    },
-                },
+                d1_databases: binding,
             },
         },
     }

@@ -10,6 +10,7 @@ import {
     deleteD1ByUuid,
     getD1Database,
     getD1Databases,
+    GetProject
 } from './d1.js'
 
 const router = Router()
@@ -64,29 +65,27 @@ router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
         var logs = []
         console.log(`new D1 for :>${tenant}<`)
         logs.push(`new D1 for :>${tenant}<`)
-        if (tenant) {
-            let accountId = env.API_KEY
-            logs.push(`accountId :>${accountId}<`)
-            console.log(`accountId :>${accountId}<`)
+        if (tenant) {            
             let d1Name = `D1_${tenant}`
             logs.push(`D1 Name :>${d1Name}<`)
             console.log(`D1 Name :>${d1Name}<`)
             var d1 = await createD1(env, d1Name)
             logs.push(`d1 created :>${d1.result.uuid}<`)
             console.log(`d1 created :>${d1.result.uuid}<`)
-            var creation = `drop table if exists data;
-            create table data (id INT PRIMARY KEY, value TEXT);`
-            sql = await executeSQL(env, creation, d1.result.uuid)
-            logs.push(`sql create executed`)
+            var creation = `DROP TABLE IF EXISTS data;
+            CREATE TABLE data (id INT PRIMARY KEY, value TEXT);
+            INSERT INTO data VALUES (1,'first data')`;
+            let sql = await executeSQL(env, creation, d1.result.uuid)
+            logs.push(`sql create executed`)            
             console.log(`sql create executed`)
-            bind = await bindD1(env, d1.result.uuid, appName)
+            bind = await bindD1(env, d1.result.uuid, d1Name.toUpperCase(), appName)
             logs.push(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
             console.log(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
-            RenderJSON(env, request, {
-                d1: d1,
-                bind: bind,
-                sql: sql,
-                logs: logs,
+            return await RenderJSON(env, request, {
+                "d1": d1,
+                "bind": bind,
+                "sql": sql,
+                "logs": logs
             })
         }
         return RenderJSON(env, request, { error: 'no tenant name', logs: logs })
@@ -101,8 +100,16 @@ router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
 // get all databases
 router.get('/d1', withParams, async (request, env) => {
     try {
+
+        console.log('==================================================')
+        console.log('==   GET PROJECT cf-d1-provisioning ==============')
+        console.log('==================================================')
+        let project = await GetProject(env,'cf-d1-provisioning');
+        console.log(project);
+        console.log('=================================')
         console.log('getting all databases from CF');
-        const databases = await getD1Databases(env)
+        let databases = await getD1Databases(env)
+        databases = databases.filter(x => x.name.startsWith("D1_"));
         console.log(databases);
         return await RenderJSON(env,request,databases)
     } catch (e) {
@@ -119,10 +126,7 @@ router.delete('/d1/:tenant', withParams, async (request, env) => {
         var logs = []
         console.log(`delete D1 for :>${tenant}<`)
         logs.push(`delete D1 for :>${tenant}<`)
-        if (tenant) {
-            let accountId = env.API_KEY
-            logs.push(`accountId :>${accountId}<`)
-            console.log(`accountId :>${accountId}<`)
+        if (tenant) {            
             let d1Uuid = `${tenant}`
             var d1 = await deleteD1ByUuid(env, d1Uuid)            
         }
@@ -158,7 +162,7 @@ router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
         console.log('d1Fromcontext', d1Fromcontext)
         await d1Fromcontext
             .prepare(
-                'INSERT INTO data (id, data) VALUES (?1, ?2, ?3, ?4)'
+                'INSERT INTO data (id, value) VALUES (?1, ?2, ?3, ?4)'
             )
             .bind(data.id,data.data)
             .run()
