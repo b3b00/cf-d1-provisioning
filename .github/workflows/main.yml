@@ -29,6 +29,7 @@ jobs:
         with:
           node-version: 16
       - run : npm i
+      - run : npm run build
       - name: Publish to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
