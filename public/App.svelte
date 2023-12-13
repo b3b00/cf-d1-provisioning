@@ -104,7 +104,7 @@
 
 	<h3>Data</h3>
 	<table>
-		{#each row as data}    
+		{#each data as row}    
 			<tr><td>{row.id}</td><td>{row.value}</td>        			
 		{/each}
 	</table>
