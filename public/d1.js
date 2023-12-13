@@ -1,4 +1,4 @@
-const CF_API_URL = 'https://api.cloudflare.com/client/v4'
+(const CF_API_URL = 'https://api.cloudflare.com/client/v4'
 
 ///accounts/${accountId}/d1/database/${dbUuid}/query
 async function request(uri, key, method, body) {
@@ -85,6 +85,13 @@ export async function getD1Database(env, name) {
     return d1
 }
 
+
+export async function getD1DatabaseById(env, id) {
+    const databases = await getD1Databases(env)
+    const d1 = databases.filter(x => x.uuid == id)[0]
+    return d1
+}
+
 export async function deleteD1ByName(env, dbName) {
     try {
         var d1 = await getD1Database(env, dbName)
@@ -167,7 +174,7 @@ export async function bindD1(env, d1Id, bindingName, projectName) {
 }
 
 
-export async function unbindD1(env, bindingName, projectName) {
+export async function unbindD1(env, d1Id, projectName) {
     console.log(`unbind project ${projectName} -- ${bindingName}-${d1Id}`);
 
     const project = await GetProject(env, projectName)
