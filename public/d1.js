@@ -165,3 +165,26 @@ export async function bindD1(env, d1Id, bindingName, projectName) {
     console.log(`PATCH ${uri}`, payload)
     return await patch(uri, env.API_KEY, payload)
 }
+
+
+export async function unbindD1(env, bindingName, projectName) {
+    console.log(`unbind project ${projectName} -- ${bindingName}-${d1Id}`);
+
+    const project = await GetProject(env, projectName)
+
+    const binding = project.deployment_configs.production.d1_databases;
+    delete binding[bindingName];
+
+
+    var payload = {
+        deployment_configs: {
+            production: {
+                d1_databases: binding,
+            },
+        },
+    }
+
+    var uri = `/accounts/${env.ACCOUNT_ID}/pages/projects/${projectName}`
+    console.log(`PATCH ${uri}`, payload)
+    return await patch(uri, env.API_KEY, payload)
+}

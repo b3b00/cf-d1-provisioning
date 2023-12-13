@@ -126,7 +126,8 @@ router.delete('/d1/:tenant', withParams, async (request, env) => {
         var logs = []
         console.log(`delete D1 for :>${tenant}<`)
         logs.push(`delete D1 for :>${tenant}<`)
-        if (tenant) {            
+        if (tenant) {
+	    await unbindD1(env,tenant,appName);
             let d1Uuid = `${tenant}`
             var d1 = await deleteD1ByUuid(env, d1Uuid)            
         }
