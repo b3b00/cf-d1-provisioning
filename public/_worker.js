@@ -139,10 +139,10 @@ router.delete('/d1/:tenant', withParams, async (request, env) => {
 
 // get all data for the given tenant
 router.get('/d1/:tenant', withParams, async (request, env) => {
-    const tenant = request.params.tenant
+    const tenant = request.params.tenant    
     console.log(`getting data for tenant <${tenant}>`)
 
-    var d1Fromcontext = env['D1_' + tenant]
+    var d1Fromcontext = env[tenant]    
     console.log('d1Fromcontext', d1Fromcontext)
     const { results } = await d1Fromcontext.prepare('SELECT * FROM data').all()
     console.log(results)

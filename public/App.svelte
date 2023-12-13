@@ -49,7 +49,7 @@
 	const selectDb = async (tenant) => {        
 		loading = true;
 		currentTenant = tenant;
-		const data = await fetch('d1/'+tenant);
+		data = await fetch('d1/'+tenant);		
 		loading = false;
 	}
 
@@ -85,7 +85,7 @@
     <table>
 		{#each databases as database}    
 			<tr><td>{database.uuid}</td><td>{database.name}</td>        
-				<td><input type="button"  on:click={()  => {selectDb(database.uuid)}} on:keydown={()  => {selectDb(database.uuid)}}  tabindex="0" value="Select"/></td>
+				<td><input type="button"  on:click={()  => {selectDb(database.name)}} on:keydown={()  => {selectDb(database.name)}}  tabindex="0" value="Select"/></td>
 				<td><input type="button"  on:click={() => {deleteDb(database.uuid)}} on:keydown={()  => {deleteDb(database.uuid)}}  tabindex="0" value="Delete"/></td></tr>
 		{/each}
 	</table>
