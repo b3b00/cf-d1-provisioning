@@ -142,6 +142,8 @@ router.get('/d1/:tenant', withParams, async (request, env) => {
     const tenant = request.params.tenant    
     console.log(`getting data for tenant <${tenant}>`)
     console.log("---------------------------")
+    console.log(env);
+    console.log("---------------------------")
     console.log('getting through env.D1_DALI');
     var dali = await env.D1_DALI.prepare('SELECT * FROM data').all();
     console.log(dali);
