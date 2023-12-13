@@ -100,20 +100,21 @@
 	<input id="newtenant" name="tenant" type="text" bind:value={newTenant} on:change={createDb}/>
 
 {#if currentTenant !== null && currentTenant !== undefined}
-<h2>Manage data</h2>
+	<h2>Manage data</h2>
 
-<h3>Data</h3>
-<table>
-	{#each row as data}    
-		<tr><td>{row.id}</td><td>{row.value}</td>        			
-	{/each}
-</table>
-<h3>add a data row</h3>
-	<label for="dataId">Id</label>
-	<input id="dataId" name="dataId" type="text" bind:value={dataId}/>
+	<h3>Data</h3>
+	<table>
+		{#each row as data}    
+			<tr><td>{row.id}</td><td>{row.value}</td>        			
+		{/each}
+	</table>
+	<h3>add a data row</h3>
+		<label for="dataId">Id</label>
+		<input id="dataId" name="dataId" type="text" bind:value={dataId}/>
 
-	<label for="dataValue">Value</label>
-	<input id="dataValue" name="dataValue" type="text" bind:value={dataValue}/>
+		<label for="dataValue">Value</label>
+		<input id="dataValue" name="dataValue" type="text" bind:value={dataValue}/>
 
-	<input type="button" on:click={addData} value="Add"/>
+		<input type="button" on:click={addData} value="Add"/>
+{/if}
 </div>
