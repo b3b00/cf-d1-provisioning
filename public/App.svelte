@@ -50,11 +50,22 @@
 		loading = false;
 	}
 
-	const selectDb = async (tenant) => {        
+	const selectDb = async (tenant) => { 
+	console.log("selecting tenant",tenant);
 		loading = true;
 		currentTenant = tenant;
-		data = await fetch('d1/'+tenant.name);		
+		console.log(`fetching d1/${tenant.name}`);
+		let response = await fetch('d1/'+tenant.name);
+		console.log(response);
+		if (response.status == 200) {
+		   var payload = await response.text();
+		   console.log(payload);
+		   var dat = JSON.parse(payload);
+		   console.log(dat);
+		   data = dat;		   
+		}
 		loading = false;
+		console.log('db selected');
 	}
 
 	const createDb = async () => {				
@@ -73,9 +84,10 @@
 			"id":dataId,
 			"data":dataValue
 		};
-		await fetch('d1/'+currentTenant.name,{method:"POST", body:JSON.stringify(payload)});
+		await fetch('d1/'+currentTenant.name,{method:"PUT", body:JSON.stringify(payload)});
 		dataId="";
 		dataValue="";
+		await selectDb(currentTenant);
 		loading = false;
 	}
 

@@ -156,13 +156,13 @@ router.get('/d1/:tenant', withParams, async (request, env) => {
 
 // add a data row for a given tenant
 // should be a PUT
-router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
+router.put('/d1/:tenant', withParams, withContent, async (request, env) => {
     try {
         var tenant = request.params.tenant
         var data = await request.json()
         console.log('*************************************')
         console.log('*************************************')
-        var d1Fromcontext = context.env[tenant]
+        var d1Fromcontext = env[tenant.toUpperCase()]
         console.log('d1Fromcontext', d1Fromcontext)
         await d1Fromcontext
             .prepare(
