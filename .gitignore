@@ -6,3 +6,5 @@ dist/*
 .wrangler/*
 .vscode/*
 .dev.vars
+wrangler.dev.toml
+public/bundle.*
