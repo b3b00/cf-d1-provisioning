@@ -60,7 +60,7 @@ async function del(uri, key) {
     return await request(uri, key, 'DELETE', undefined)
 }
 
-export async function GetProject(env, projectName) {
+export async function getProject(env, projectName) {
     var projectInfo = await get(
         `/accounts/${env.ACCOUNT_ID}/pages/projects/${projectName}`,
         env.API_KEY
@@ -177,7 +177,11 @@ export async function bindD1(env, d1Id, bindingName, projectName) {
 export async function unbindD1(env, d1Id, projectName) {
     console.log(`unbind project ${projectName} -- ${bindingName}-${d1Id}`);
 
-    const project = await GetProject(env, projectName)
+    var database = await getD1DatabaseById(env,d1Id);
+    var bindingName = database.name.toUpperCase();
+
+    
+    const project = await getProject(env, projectName)
 
     const binding = project.deployment_configs.production.d1_databases;
     delete binding[bindingName];

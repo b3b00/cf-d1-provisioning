@@ -10,7 +10,9 @@ import {
     deleteD1ByUuid,
     getD1Database,
     getD1Databases,
-    GetProject
+    getProject,
+    unbindD1,
+    getD1DatabaseById
 } from './d1.js'
 
 const router = Router()
@@ -104,7 +106,7 @@ router.get('/d1', withParams, async (request, env) => {
         console.log('==================================================')
         console.log('==   GET PROJECT cf-d1-provisioning ==============')
         console.log('==================================================')
-        let project = await GetProject(env,'cf-d1-provisioning');
+        let project = await getProject(env,'cf-d1-provisioning');
         console.log(project);
         console.log('=================================')
         console.log('getting all databases from CF');
