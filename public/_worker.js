@@ -151,7 +151,7 @@ router.get('/d1/:tenant', withParams, async (request, env) => {
 
     console.log("---------------------------")
     console.log('getting through env["D1_DALI"]');
-    var d1Fromcontext = env[tenant].toUpperCase();    
+    var d1Fromcontext = env[tenant.toUpperCase()];    
     console.log('d1Fromcontext', d1Fromcontext)
     const { results } = await d1Fromcontext.prepare('SELECT * FROM data').all()
     console.log(results)
