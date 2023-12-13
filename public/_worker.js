@@ -157,7 +157,7 @@ router.get('/d1/:tenant', withParams, async (request, env) => {
     console.log(results)
     console.log("---------------------------")
 
-    return RenderJSON(env, request, { tenant: ['data1', 'data2', 'data3'] })
+    return RenderJSON(env, request, results)
 })
 
 // add a data row for a given tenant
