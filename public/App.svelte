@@ -12,6 +12,10 @@
 	let datavalue = "";
 
 	let currentTenant;
+
+	let dataId;
+
+	let dataValue;
 	
 	let loading = false;
 
@@ -49,7 +53,7 @@
 	const selectDb = async (tenant) => {        
 		loading = true;
 		currentTenant = tenant;
-		data = await fetch('d1/'+tenant);		
+		data = await fetch('d1/'+tenant.name);		
 		loading = false;
 	}
 
@@ -64,13 +68,15 @@
 
 
 	const addData = async () => {
+		loading = true;
 		const payload = {
-			"id":dataid,
-			"data":datavalue
+			"id":dataId,
+			"data":dataValue
 		};
-		await fetch('d1/'+tenant,{method:"POST", body:JSON.stringify(payload)});
-		dataid="";
-		datavalue="";
+		await fetch('d1/'+currentTenant.name,{method:"POST", body:JSON.stringify(payload)});
+		dataId="";
+		dataValue="";
+		loading = false;
 	}
 
 
@@ -85,7 +91,7 @@
     <table>
 		{#each databases as database}    
 			<tr><td>{database.uuid}</td><td>{database.name}</td>        
-				<td><input type="button"  on:click={()  => {selectDb(database.name)}} on:keydown={()  => {selectDb(database.name)}}  tabindex="0" value="Select"/></td>
+				<td><input type="button"  on:click={()  => {selectDb(database)}} on:keydown={()  => {selectDb(database)}}  tabindex="0" value="Select"/></td>
 				<td><input type="button"  on:click={() => {deleteDb(database.uuid)}} on:keydown={()  => {deleteDb(database.uuid)}}  tabindex="0" value="Delete"/></td></tr>
 		{/each}
 	</table>
@@ -93,8 +99,21 @@
 	<label for="newtenant">tenant</label>
 	<input id="newtenant" name="tenant" type="text" bind:value={newTenant} on:change={createDb}/>
 
+{#if currentTenant !== null && currentTenant !== undefined}
 <h2>Manage data</h2>
 
-<h3>to come...</h3>
+<h3>Data</h3>
+<table>
+	{#each row as data}    
+		<tr><td>{row.id}</td><td>{row.value}</td>        			
+	{/each}
+</table>
+<h3>add a data row</h3>
+	<label for="dataId">Id</label>
+	<input id="dataId" name="dataId" type="text" bind:value={dataId}/>
 
+	<label for="dataValue">Value</label>
+	<input id="dataValue" name="dataValue" type="text" bind:value={dataValue}/>
+
+	<input type="button" on:click={addData} value="Add"/>
 </div>

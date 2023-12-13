@@ -158,11 +158,11 @@ router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
         var data = await request.json()
         console.log('*************************************')
         console.log('*************************************')
-        var d1Fromcontext = context.env[d1Name]
+        var d1Fromcontext = context.env[tenant]
         console.log('d1Fromcontext', d1Fromcontext)
         await d1Fromcontext
             .prepare(
-                'INSERT INTO data (id, value) VALUES (?1, ?2, ?3, ?4)'
+                'INSERT INTO data (id, value) VALUES (?1, ?2)'
             )
             .bind(data.id,data.data)
             .run()
