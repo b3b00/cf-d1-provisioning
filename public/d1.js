@@ -1,4 +1,4 @@
-(const CF_API_URL = 'https://api.cloudflare.com/client/v4'
+CF_API_URL = 'https://api.cloudflare.com/client/v4'
 
 ///accounts/${accountId}/d1/database/${dbUuid}/query
 async function request(uri, key, method, body) {
