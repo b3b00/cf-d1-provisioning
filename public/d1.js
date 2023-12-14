@@ -15,12 +15,7 @@ export class D1 {
 
     ///accounts/${accountId}/d1/database/${dbUuid}/query
     async request(uri, method, body) {
-        if (method == 'POST') {
-            console.log("posting");
-        }
         var root = uri.startsWith('/') ? this.CF_API_URL : this.CF_API_URL + '/'
-        console.log(`${method} ${uri}`)
-        console.log(body)
 
         var options = {
             method: method,
@@ -34,29 +29,18 @@ export class D1 {
             options.body = JSON.stringify(body)
         }
 
-        console.log(`options ${options}`, options)
-
-        console.log('sending....' + root + uri)
         try {
             var r = await fetch(root + uri, options)
-            console.log('d1 fetched ' + r.status)
             if (r.status == 200) {
-                console.log('OK')
                 var content = await r.text()
                 var d1 = JSON.parse(content)
                 //var d1 = await r.json()
-                console.log(d1)
-                return d1
+                return d1;
             } else {
                 const content = await r.text()
-                console.log(
-                    `error >${r.status}< :>${r.statusText}< ::>${content}<`
-                )
                 return null
             }
         } catch (e) {
-            console.log('exception when requesting CF')
-            console.log(e)
             return null
         }
     }
@@ -81,14 +65,12 @@ export class D1 {
         var projectInfo = await this.get(
             `/accounts/${this.accountId}/pages/projects/${this.projectName}`
         )
-        console.log('projectInfo :', projectInfo)
 
         return projectInfo.result
     }
 
     async getD1Databases() {
         const list = await this.get(`/accounts/${this.accountId}/d1/database`)
-        console.log(list.result)
         return list.result
     }
 
@@ -109,11 +91,7 @@ export class D1 {
             var d1 = await this.getD1Database(env, dbName)
             if (d1) {
                 const uri = `/accounts/${this.accountId}/d1/database/${d1.uuid}`
-                console.log(`deleteD1(${dbName}) : ${uri}`)
                 var d1 = await this.del(uri)
-                console.log('D1.js :: d1 deleted')
-                console.log(d1)
-                console.log('---------------------------------')
                 return d1
             } else {
                 console.log(`D1 ${dbName} not found`)
@@ -123,14 +101,10 @@ export class D1 {
         }
     }
 
-    async deleteD1ByUuid(env, dbUuid) {
+    async deleteD1ByUuid(dbUuid) {
         try {
             const uri = `/accounts/${this.accountId}/d1/database/${dbUuid}`
-            console.log(`deleteD1(${dbUuid}) : ${uri}`)
-            var d1 = await del(uri)
-            console.log('D1.js :: d1 deleted')
-            console.log(d1)
-            console.log('---------------------------------')
+            var d1 = await this.del(uri)
             return d1
         } catch (e) {
             console.log('error while deleting' + dbUuid, e)
@@ -142,21 +116,14 @@ export class D1 {
             name: dbName,
         }
         const uri = `/accounts/${this.accountId}/d1/database`
-        console.log(`D1.js :: CreateD1(${dbName}) : ${uri}`)
-        console.log(payLoad)
         var d1 = await this.post(uri, payLoad)
-        console.log('D1.js :: d1 created')
-        console.log(d1)
-        console.log('---------------------------------')
         return d1
     }
 
     async executeSQL(sql, d1Id) {
         try {
-            console.log(`D1.js :: d1.executeSQL(${sql},${d1Id})`)
             const uri = `/accounts/${this.accountId}/d1/database/${d1Id}/query`
-            console.log(`D1.js ::  => ${uri}`)
-            const result = await post(uri, { sql: sql })
+            const result = await this.post(uri, { sql: sql })
             return result
         } catch (e) {
             console.log('D1.js :: error while executing SQL ', sql)
@@ -165,51 +132,78 @@ export class D1 {
     }
 
     async bindD1(d1Id, bindingName) {
-        console.log(
-            `bind project ${this.projectName} -- ${bindingName}-${d1Id}`
-        )
 
-        const project = await GetProject(this.projectName)
+        const project = await this.getProject()
 
-        const binding = project.deployment_configs.production.d1_databases
-        binding[bindingName] = { id: d1Id }
+        const production = project.deployment_configs.production
 
-        var payload = {
-            deployment_configs: {
-                production: {
-                    d1_databases: binding,
+        if (production) {
+            let binding = {}
+            if (production.d1_databases) {
+                binding = production.d1_databases
+            }
+            binding[bindingName] = { id: d1Id }
+
+            var payload = {
+                deployment_configs: {
+                    production: {
+                        d1_databases: binding,
+                    },
                 },
-            },
-        }
+            }
 
-        var uri = `/accounts/${this.accountId}/pages/projects/${this.projectName}`
-        console.log(`PATCH ${uri}`, payload)
-        return await patch(uri, payload)
+            var uri = `/accounts/${this.accountId}/pages/projects/${this.projectName}`
+            return await this.patch(uri, payload)
+        }
     }
 
     async unbindD1(d1Id) {
         console.log(
-            `unbind project ${this.projectName} -- ${bindingName}-${d1Id}`
+            `unbind project ${this.projectName} --- ${d1Id}`
         )
 
-        var database = await getD1DatabaseById(d1Id)
+        var database = await this.getD1DatabaseById(d1Id)
         var bindingName = database.name.toUpperCase()
+
+        console.log(
+            `unbind project ${this.projectName} --- ${bindingName}`
+        )
 
         const project = await this.getProject()
 
-        const binding = project.deployment_configs.production.d1_databases
-        delete binding[bindingName]
+        const binding = project?.deployment_configs?.production?.d1_databases;
 
-        var payload = {
-            deployment_configs: {
-                production: {
-                    d1_databases: binding,
+        // do not try to unbind if not bound
+        if (
+            binding !== null &&
+            binding !== undefined &&
+            bindingName in binding
+        ) {
+            delete binding[bindingName]
+
+
+            let payload = {
+                deployment_configs: {
+                    production: {
+                        d1_databases: binding,
+                    },
                 },
-            },
-        }
+            }
 
-        var uri = `/accounts/${this.accountId}/pages/projects/${this.projectName}`
-        console.log(`PATCH ${uri}`, payload)
-        return await patch(uri, payload)
+            if (Object.keys(binding).length == 0) {
+                let payload = {
+                    deployment_configs: {
+                        production: {                            
+                        },
+                    },
+                }
+            }
+
+            console.log(`UNBIND ${bindingName} PAYLOAD :` ,payload);
+
+            var uri = `/accounts/${this.accountId}/pages/projects/${this.projectName}`
+            let patched = await this.patch(uri, payload)
+            console.log(`UNBIND ${bindingName} result :` ,patched);
+        }
     }
 }
