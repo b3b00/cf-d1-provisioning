@@ -3,49 +3,14 @@
 import { Router, withParams, withContent } from 'itty-router'
 // import Mustache, { render } from 'mustache'
 import {
-    createD1,
-    bindD1,
-    executeSQL,
-    deleteD1ByName,
-    deleteD1ByUuid,
-    getD1Database,
-    getD1Databases,
-    getProject,
-    unbindD1,
-    getD1DatabaseById
+    D1
 } from './d1.js'
 
 const router = Router()
 
-async function GetFromOrCatchOrFetch(request, ttl, fetcher) {
-    let cache = caches.default
-    var cached = await cache.match(request)
-    if (cached) {
-        return cached
-    }
-    console.log(`getOrFetch : fetching`)
-    var response = await fetcher()
-    console.log(`getOrFetch : fetched`, response)
 
-    response.headers.set('Cache-Control', `max-age:${ttl}`)
-    console.log(`getOrFetch : caching`)
-    // NOTE : when using cache the reponse MUST be cloned before put to cache
-    cache.put(request, response.clone())
+const projectName = "cf-d1-provisioning";
 
-    return response
-}
-
-// async function RenderTemplate(env, request, templatePath, view, mimeType) {
-//     var url = new URL(request.url)
-//     var templateUrl = `${url.origin}/${templatePath}`
-//     var templateRequest = new Request(templateUrl, request)
-//     var response = await env.ASSETS.fetch(templateRequest)
-//     var text = await response.text()
-//     var output = Mustache.render(text, view)
-//     var response = new Response(output)
-//     response.headers.set('Content-Type', mimeType)
-//     return response
-// }
 
 async function RenderJSON(env, request, data) {
     const payload = JSON.stringify(data);
@@ -54,16 +19,15 @@ async function RenderJSON(env, request, data) {
     return response
 }
 
-// async function RenderHtml(env, request, templatePath, view) {
-//     return RenderTemplate(env, request, templatePath, view, 'text/html')
-// }
 
 // provision and bind a D1 instance with given tenant name
 // should be a POST !
 router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
+
+    let d1Api = new D1(env.ACCOUNT_ID,env.API_KEY,projectName);
+
     const tenant = request.params.tenant
-    try {
-        const appName = 'cf-d1-provisioning'
+    try {        
         var logs = []
         console.log(`new D1 for :>${tenant}<`)
         logs.push(`new D1 for :>${tenant}<`)
@@ -71,18 +35,18 @@ router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
             let d1Name = `D1_${tenant}`
             logs.push(`D1 Name :>${d1Name}<`)
             console.log(`D1 Name :>${d1Name}<`)
-            var d1 = await createD1(env, d1Name)
+            var d1 = await d1Api.createD1(d1Name)
             logs.push(`d1 created :>${d1.result.uuid}<`)
             console.log(`d1 created :>${d1.result.uuid}<`)
             var creation = `DROP TABLE IF EXISTS data;
             CREATE TABLE data (id INT PRIMARY KEY, value TEXT);
             INSERT INTO data VALUES (1,'first data')`;
-            let sql = await executeSQL(env, creation, d1.result.uuid)
+            let sql = await d1Api.executeSQL(creation, d1.result.uuid)
             logs.push(`sql create executed`)            
             console.log(`sql create executed`)
-            bind = await bindD1(env, d1.result.uuid, d1Name.toUpperCase(), appName)
-            logs.push(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
-            console.log(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
+            bind = await d1Api.bindD1(d1.result.uuid, d1Name.toUpperCase())
+            logs.push(`d1 :>${d1.result.uuid}< bound to :>${projectName}<`)
+            console.log(`d1 :>${d1.result.uuid}< bound to :>${projectName}<`)
             return await RenderJSON(env, request, {
                 "d1": d1,
                 "bind": bind,
@@ -90,7 +54,7 @@ router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
                 "logs": logs
             })
         }
-        return RenderJSON(env, request, { error: 'no tenant name', logs: logs })
+        return await RenderJSON(env, request, { error: 'no tenant name', logs: logs })
     } catch (e) {
         return {
             error: `error while provisioning D1 for :>${tenant}}<`,
@@ -101,16 +65,19 @@ router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
 
 // get all databases
 router.get('/d1', withParams, async (request, env) => {
+
+    let d1Api = new D1(env.ACCOUNT_ID,env.API_KEY,projectName);
+
     try {
 
         console.log('==================================================')
-        console.log('==   GET PROJECT cf-d1-provisioning ==============')
+        console.log(`==   GET PROJECT ${projectName} ==============`)
         console.log('==================================================')
-        let project = await getProject(env,'cf-d1-provisioning');
+        let project = await d1Api.getProject(env,projectName);
         console.log(project);
         console.log('=================================')
         console.log('getting all databases from CF');
-        let databases = await getD1Databases(env)
+        let databases = await d1Api.getD1Databases(env)
         databases = databases.filter(x => x.name.startsWith("D1_"));
         console.log(databases);
         return await RenderJSON(env,request,databases)
@@ -122,18 +89,20 @@ router.get('/d1', withParams, async (request, env) => {
 
 // delete a database
 router.delete('/d1/:tenant', withParams, async (request, env) => {
+
+    let d1Api = new D1(env.ACCOUNT_ID,env.API_KEY,projectName);
+
     const tenant = request.params.tenant
-    try {
-        const appName = 'cf-d1-provisioning'
+    try {        
         var logs = []
         console.log(`delete D1 for :>${tenant}<`)
         logs.push(`delete D1 for :>${tenant}<`)
         if (tenant) {
-	    await unbindD1(env,tenant,appName);
+	    await d1Api.unbindD1(env,tenant,projectName);
             let d1Uuid = `${tenant}`
-            var d1 = await deleteD1ByUuid(env, d1Uuid)            
+            var d1 = await d1Api.deleteD1ByUuid(env, d1Uuid)            
         }
-        return RenderJSON(env, request, { error: 'no tenant name', logs: logs })
+        return await RenderJSON(env, request, { error: 'no tenant name', logs: logs })
     } catch (e) {
         console.log(`error while deleting D1 for :>${tenant}}<`)
         console.log(e)
@@ -154,12 +123,13 @@ router.get('/d1/:tenant', withParams, async (request, env) => {
     console.log(results)
     console.log("---------------------------")
 
-    return RenderJSON(env, request, results)
+    return await RenderJSON(env, request, results)
 })
 
 // add a data row for a given tenant
 // should be a PUT
 router.put('/d1/:tenant', withParams, withContent, async (request, env) => {
+
     try {
         var tenant = request.params.tenant
         var data = await request.json()
