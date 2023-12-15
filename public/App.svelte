@@ -62,7 +62,7 @@
 		   console.log(payload);
 		   var dat = JSON.parse(payload);
 		   console.log(dat);
-		   data = dat;		   
+		   data = dat.result;		   
 		}
 		loading = false;
 		console.log('db selected');
