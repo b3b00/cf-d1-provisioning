@@ -103,9 +103,14 @@ router.get('/d1', withParams, withD1(), async (request, env) => {
             return await renderInternalServorErrorJson(env,request,databases);
         }
         const bindings = project?.result?.result?.deployment_configs?.production?.d1_databases;
-        var uuids = Object.values(bindings).map(x => x.id);
-        databases = databases.result.result.filter(x => uuids.includes(x.uuid));        
-        return await renderOkJson(env,request,databases)
+        if (bindings) {
+            var uuids = Object.values(bindings).map(x => x.id);
+            databases = databases.result.result.filter(x => uuids.includes(x.uuid));        
+            return await renderOkJson(env,request,okResult(databases))
+        }
+        else {
+            return await renderOkJson(env,request,okResult([]));
+        }
     } catch (e) {        
         return await renderInternalServorErrorJson(env,request,
             errorResult([`error while getting databases for ${request.projectName}`,e.message],null));            
