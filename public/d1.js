@@ -203,7 +203,7 @@ export class D1 {
             binding !== undefined &&
             bindingName in binding
         ) {
-            delete binding[bindingName]
+            binding[bindingName] = null;
 
 
             let payload = {
