@@ -178,7 +178,7 @@
 <h3>databases</h3>
     <table>
 		{#each databases as database}    
-			<tr><td>{database.uuid}</td><td>{database.name}</td>        
+			<tr><td>{database.name}</td>        
 				<td><input type="button"  on:click={()  => {selectDb(database)}} on:keydown={()  => {selectDb(database)}}  tabindex="0" value="Select"/></td>
 				<td><input type="button"  on:click={() => {deleteDb(database.uuid)}} on:keydown={()  => {deleteDb(database.uuid)}}  tabindex="0" value="Delete"/></td></tr>
 		{/each}
