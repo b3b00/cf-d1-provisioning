@@ -12,6 +12,21 @@ const router = Router()
 
 const projectName = "cf-d1-provisioning";
 
+export function errorResult(errors,result) {
+    return {
+        ok:false,
+        errors:errors,
+        result:result
+    };
+}
+
+export function okResult(result) {
+    return {
+        ok:true,
+        result:result
+    };
+}
+
 
 async function renderOkJson(env, request, data) {
     let response = await renderJson(env,request,data);     
@@ -45,29 +60,30 @@ router.post('/d1/:tenant', withParams, withContent,withD1(), async (request, env
         if (tenant) {            
             const d1Name = `D1_${tenant}`
             const db = await d1.createD1(d1Name)
+            if (!db.ok) {
+                return await renderInternalServorErrorJson(env,request,db);
+            }
             const creation = `DROP TABLE IF EXISTS data;
             CREATE TABLE data (id INT PRIMARY KEY, value TEXT);
             INSERT INTO data VALUES (1,'first data')`;
-            const sql = await d1.executeSQL(creation, db.result.uuid)
-            const bind = await d1.bindD1(db.result.uuid, d1Name.toUpperCase())
-            return await renderOkJson(env, request, {
-                "success":true,
+            const sql = await d1.executeSQL(creation, db.result.result.uuid)
+            if (!sql.ok) {
+                return await renderInternalServorErrorJson(env,request,sql);
+            }
+            const bind = await d1.bindD1(db.result.result.uuid, d1Name.toUpperCase())
+            if (!bind.ok) {
+                return await renderInternalServorErrorJson(env,request,bind);
+            }
+            return await renderOkJson(env, request, ok({
                 "d1": db,
                 "bind": bind,
                 "sql": sql,                
-            })
+            }));
         }
-        return await renderBadRequestJson(env, request, { 
-            "success":false,
-            error: 'no tenant name'
-        }
-        );
+        return await renderBadRequestJson(env, request, errorResult(['no tenant name'],null));        
     } catch (e) {
-        return await renderInternalServorErrorJson(env,request,{
-            success:false,
-            error: `error while provisioning D1 for :>${tenant}}<`,
-            exception: e.message,
-        });
+        return await renderInternalServorErrorJson(env,request,            
+            errorResult([`error while provisioning D1 for :>${tenant}}<`,e.message],null));
     }
 })
 
@@ -79,19 +95,20 @@ router.get('/d1', withParams, withD1(), async (request, env) => {
     try {
 
         let project = await d1.getProject();
-        let databases = await d1.getD1Databases(env)
-        const bindings = project?.deployment_configs?.production?.d1_databases;
+        if (!project.ok) {
+            return await renderInternalServorErrorJson(env,request,project);
+        }
+        let databases = await d1.getD1Databases(env);
+        if (!databases.ok) {
+            return await renderInternalServorErrorJson(env,request,databases);
+        }
+        const bindings = project?.result?.result?.deployment_configs?.production?.d1_databases;
         var uuids = Object.values(bindings).map(x => x.id);
-        databases = databases.filter(x => uuids.includes(x.uuid));
+        databases = databases.result.result.filter(x => uuids.includes(x.uuid));        
         return await renderOkJson(env,request,databases)
-    } catch (e) {
-        console.log(e);
+    } catch (e) {        
         return await renderInternalServorErrorJson(env,request,
-            {
-                "message":`error while getting databases for ${request.projectName}`,
-                "success":false,
-                "exception":e.message
-            });
+            errorResult([`error while getting databases for ${request.projectName}`,e.message],null));            
     }
 })
 
@@ -104,20 +121,23 @@ router.delete('/d1/:tenant', withParams, withD1(), async (request, env) => {
     try {        
         console.log(`delete D1 for :>${tenant}<`)
         if (tenant) {
-	    await d1.unbindD1(tenant);
+	        var r = await d1.unbindD1(tenant);
+            if(!r.ok) {
+                return renderInternalServorErrorJson(env,request,r);
+            }
             const d1Uuid = `${tenant}`
             const deleted = await d1.deleteD1ByUuid(d1Uuid);
-            return await renderOkJson(env,request,{success:true,deletedD1:deleted});        
+            if (!deleted.ok) {
+                return renderInternalServorErrorJson(env,request,deleted);
+            }
+            return await renderOkJson(env,request,okResult(deleted));        
         }
-        return await renderBadRequestJson(env, request, { success:false,message: 'no tenant name' })
+        return await renderBadRequestJson(env, request, errorResult(['no tenant name' ],null))
     } catch (e) {
 
         return await renderInternalServorErrorJson(env,request,
-            {
-                message : `error while deleting D1 for >${tenant}}< in project >${request.projectName}<`,
-                exception:e.message,
-                success:false
-            });        
+            error([`error while deleting D1 for >${tenant}}< in project >${request.projectName}<`,e.message],null)
+            );        
     }
 })
 
@@ -126,14 +146,15 @@ router.get('/d1/:tenant', withParams, withD1(), async (request, env) => {
     try {
         const tenant = request.params.tenant    
         var d1Fromcontext = env[tenant.toUpperCase()];    
+        if (!d1Fromcontext) {
+            return renderBadRequestJson(env,request,errorResult([`no bound D1 for ${tenant}`],null));
+        }
         const { results } = await d1Fromcontext.prepare('SELECT * FROM data').all()
-        return await renderOkJson(env, request, results)
+        return await renderOkJson(env, request, okResult(results))
     } catch (e) {
-        return await renderInternalServorErrorJson(env, request, {
-            message: `error while getting data for >${tenant}}< in project >${request.projectName}<`,
-            exception: e.message,
-            success: false,
-        });
+        return await renderInternalServorErrorJson(env, request, 
+            errorResult([`error while getting data for >${tenant}}< in project >${request.projectName}<`,e.message],null)
+            );
     }
 })
 
@@ -145,6 +166,9 @@ router.put('/d1/:tenant', withParams, withContent, withD1(), async (request, env
         var tenant = request.params.tenant
         var data = await request.json()
         var d1Fromcontext = env[tenant.toUpperCase()]
+        if (!d1Fromcontext) {
+            return renderBadRequestJson(env,request,errorResult([`no bound D1 for ${tenant}`],null));
+        }
         await d1Fromcontext
             .prepare(
                 'INSERT INTO data (id, value) VALUES (?1, ?2)'
@@ -154,11 +178,7 @@ router.put('/d1/:tenant', withParams, withContent, withD1(), async (request, env
         return renderOkJson(env,request,{});
     } catch (e) {
         return await renderInternalServorErrorJson(env,request,
-            {
-                message : `error while updating data for >${tenant}}< in project >${request.projectName}<`,
-                exception:e.message,
-                success:false
-            });     
+            errorResult([`error while updating data for >${tenant}}< in project >${request.projectName}<`,e.message],null));            
     }
 })
 
