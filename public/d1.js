@@ -83,7 +83,7 @@ export class D1 {
             } else {
                 const content = await r.json()
 
-                return error(`request ${uri} returned ${result.status} - ${result.statusText}`,content);
+                return error(`request ${uri} returned ${r.status} - ${r.statusText}`,content);
             }
         } catch (e) {
             return error(`request ${uri} raised ${e.message}`);
@@ -204,7 +204,7 @@ export class D1 {
             return project;
         }
 
-        const production = project.deployment_configs.production
+        const production = project.result.result.deployment_configs.production
 
         if (production) {
             let binding = {}
@@ -247,7 +247,7 @@ export class D1 {
             return project;
         }
 
-        const binding = project?.result?.deployment_configs?.production?.d1_databases;
+        const binding = project?.result?.result?.deployment_configs?.production?.d1_databases;
         
 
         // do not try to unbind if not bound
