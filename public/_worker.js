@@ -3,7 +3,8 @@
 import { Router, withParams, withContent } from 'itty-router'
 // import Mustache, { render } from 'mustache'
 import {
-    D1
+    D1,
+    withD1ForProject
 } from './d1.js'
 
 const router = Router()
@@ -22,9 +23,9 @@ async function RenderJSON(env, request, data) {
 
 // provision and bind a D1 instance with given tenant name
 // should be a POST !
-router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
+router.post('/d1/:tenant', withParams, withContent,withD1ForProject(projectName), async (request, env) => {
 
-    let d1Api = new D1(env.ACCOUNT_ID,env.API_KEY,projectName);
+    let d1Api = request.D1;
 
     const tenant = request.params.tenant
     try {        
@@ -54,9 +55,9 @@ router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
 })
 
 // get all databases
-router.get('/d1', withParams, async (request, env) => {
+router.get('/d1', withParams, withD1ForProject(projectName), async (request, env) => {
 
-    let d1Api = new D1(env.ACCOUNT_ID,env.API_KEY,projectName);
+    let d1Api = request.D1;
 
     try {
 
@@ -71,9 +72,9 @@ router.get('/d1', withParams, async (request, env) => {
 })
 
 // delete a database
-router.delete('/d1/:tenant', withParams, async (request, env) => {
+router.delete('/d1/:tenant', withParams, withD1ForProject(projectName), async (request, env) => {
 
-    let d1Api = new D1(env.ACCOUNT_ID,env.API_KEY,projectName);
+    let d1Api = request.D1;
 
     const tenant = request.params.tenant
     try {        
@@ -92,7 +93,7 @@ router.delete('/d1/:tenant', withParams, async (request, env) => {
 })
 
 // get all data for the given tenant
-router.get('/d1/:tenant', withParams, async (request, env) => {
+router.get('/d1/:tenant', withParams, withD1ForProject(projectName), async (request, env) => {
     const tenant = request.params.tenant    
     var d1Fromcontext = env[tenant.toUpperCase()];    
     const { results } = await d1Fromcontext.prepare('SELECT * FROM data').all()
@@ -101,7 +102,7 @@ router.get('/d1/:tenant', withParams, async (request, env) => {
 
 // add a data row for a given tenant
 // should be a PUT
-router.put('/d1/:tenant', withParams, withContent, async (request, env) => {
+router.put('/d1/:tenant', withParams, withContent, withD1ForProject(projectName), async (request, env) => {
 
     try {
         var tenant = request.params.tenant

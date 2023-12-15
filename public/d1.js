@@ -1,3 +1,27 @@
+
+
+export function withD1ForProjectAndAuthentication(projectName, accountId, apiKey) {
+    return (request, env) => {
+        let d1Api = new D1(accountId,apiKey,projectName);
+        request.D1 = d1Api;
+    }
+}
+
+export function withD1ForProject(projectName) {
+    return (request, env) => {
+        let d1Api = new D1(env.ACCOUNT_ID,env.API_KEY,projectName);
+        request.D1 = d1Api;
+    };    
+}
+
+
+export function withD1(request, env) {
+    return (request, env) => {
+        let d1Api = new D1(env.ACCOUNT_ID,env.API_KEY,env.PROJECT_NAME);
+        request.D1 = d1Api;
+    };     
+};
+
 export class D1 {
     CF_API_URL = 'https://api.cloudflare.com/client/v4'
 
