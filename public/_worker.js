@@ -80,8 +80,9 @@ router.get('/d1', withParams, withD1(), async (request, env) => {
 
         let project = await d1.getProject();
         let databases = await d1.getD1Databases(env)
-        // TODO : filter databases according to project bindings
-        databases = databases.filter(x => x.name.startsWith("D1_"));
+        const bindings = project?.deployment_configs?.production?.d1_databases;
+        var uuids = Object.values(bindings).map(x => x.id);
+        databases = databases.filter(x => uuids.includes(x.uuid));
         return await renderOkJson(env,request,databases)
     } catch (e) {
         console.log(e);
