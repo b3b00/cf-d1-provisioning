@@ -19,23 +19,30 @@
 	
 	let loading = false;
 
+	let errors = [];
+
+	let displayErrors = false;
+
 	import {onMount} from 'svelte';
 
 	onMount(async () => {
 		loading = true;
+		hideErrors();
 		console.log("mounting svelte app");
 		const dbs = await getAllDatabases();
+		if (!dbs.ok) {
+			showErrors(dbs.errors);
+			loading = false;
+			return;
+		}
 		console.log("databases are ::",dbs);
-		databases = dbs;
+		databases = dbs.result;
 		loading = false;
 	});
 
 	const getAllDatabases = async () => {
-    	var response = await fetch('d1/');
+    	const response = await fetch('d1/');
 		console.log("response",response);
-		// const content = await response.text();
-		// const d = JSON.parse(content);
-		// console.log("D",d);
 		const bases = await response.json();
 		console.log("data",bases);
 		return bases;
@@ -43,15 +50,28 @@
 
 	const deleteDb = async (tenant) => {    
 		loading = true;
-		await fetch('d1/'+tenant, {method:'DELETE'});
+		hideErrors();
+		const deleted =  await fetch('d1/'+tenant, {method:'DELETE'});
+		const r = await deleted.json();
+		if (!r.ok) {
+			showErrors(r.errors);
+			return;
+		}
 		const dbs = await getAllDatabases();
+		if (!dbs.ok) {
+			showErrors(dbs.errors);
+			loading = false;
+			return;
+		}
+		hideErrors();
 		console.log("databases are ::",dbs);
-		databases = dbs;
+		databases = dbs.result;
 		loading = false;
 	}
 
 	const selectDb = async (tenant) => { 
-	console.log("selecting tenant",tenant);
+		hideErrors()
+		console.log("selecting tenant",tenant);
 		loading = true;
 		currentTenant = tenant;
 		console.log(`fetching d1/${tenant.name}`);
@@ -61,33 +81,80 @@
 		   var payload = await response.text();
 		   console.log(payload);
 		   var dat = JSON.parse(payload);
+		   if (!dat.ok) {
+				showErrors(dat.errors);
+				return;
+			}
 		   console.log(dat);
+		   hideErrors();
 		   data = dat.result;		   
 		}
+		else {
+			var err = await response.json();
+			if (!err.ok) {
+				showErrors(err.errors);
+				loading = false;
+				return;
+			}
+		}
 		loading = false;
+		hideErrors();
 		console.log('db selected');
 	}
 
-	const createDb = async () => {				
+	const createDb = async () => {			
+		hideErrors();	
 		loading = true;
-		await fetch('d1/'+newTenant,{method:'POST'});
-		const dbs = await getAllDatabases();
+		const created = await fetch('d1/'+newTenant,{method:'POST'});
+		if (!created.ok) {
+			showErrors(created.errors);
+			loading = false;
+			return;
+		}
+		const dbs = await getAllDatabases();	
+		if (!dbs.ok)	 {
+			showErrors(dbs.errors);
+			loading = false;
+			return;
+		}
+		hideErrors();
 		console.log("databases are ::",dbs);
-		databases = dbs;
+		databases = dbs.result;
 		loading = false;
 	}
 
+	const hideErrors = () => {
+		errors=[];
+	}
+
+	const showErrors = (errorList) => {
+		console.log("showing errors",errors);
+		displayErrors = true;
+		errors = errorList;
+	}	
 
 	const addData = async () => {
+		hideErrors();		
 		loading = true;
 		const payload = {
 			"id":dataId,
 			"data":dataValue
 		};
-		await fetch('d1/'+currentTenant.name,{method:"PUT", body:JSON.stringify(payload)});
+		var add = await fetch('d1/'+currentTenant.name,{method:"PUT", body:JSON.stringify(payload)});
+		if (!add.ok)	 {
+			showErrors(add.errors);
+			loading = false;
+			return;
+		}
 		dataId="";
 		dataValue="";
-		await selectDb(currentTenant);
+		var db = await selectDb(currentTenant);
+		if (!db.ok)	 {
+			showErrors(db.errors);
+			loading = false;
+			return;
+		}
+		hideErrors();
 		loading = false;
 	}
 
@@ -99,6 +166,15 @@
 <img src="loading.gif" style="display:{loading ? "block":"none"}" alt="loading"/>
 
 <h2>Manage databases</h2> 
+{#if displayErrors && errors !== null && errors !== undefined && errors.length > 0}
+<h3>errors</h3>
+<ul>
+	{#each errors as error}
+		<li style="color:red">{error}</li>
+	{/each}
+</ul>
+{/if}
+
 <h3>databases</h3>
     <table>
 		{#each databases as database}    

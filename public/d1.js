@@ -1,5 +1,20 @@
 
 
+export function error(errors,result) {
+    return {
+        ok:false,
+        errors:errors,
+        result:result
+    };
+}
+
+export function ok(result) {
+    return {
+        ok:true,
+        result:result
+    };
+}
+
 export function withD1ForProjectAndAuthentication(projectName, accountId, apiKey) {
     return (request, env) => {
         let d1 = new D1(accountId,apiKey,projectName);
@@ -60,15 +75,18 @@ export class D1 {
             var r = await fetch(root + uri, options)
             if (r.status == 200) {
                 var content = await r.text()
-                var d1 = JSON.parse(content)
-                //var d1 = await r.json()
-                return d1;
+                var data = JSON.parse(content)
+                return {
+                    ok:true,
+                    result:data
+                };                
             } else {
-                const content = await r.text()
-                return null
+                const content = await r.json()
+
+                return error(`request ${uri} returned ${r.status} - ${r.statusText}`,content);
             }
         } catch (e) {
-            return null
+            return error(`request ${uri} raised ${e.message}`);
         }
     }
 
@@ -91,39 +109,62 @@ export class D1 {
     async getProject() {
         var projectInfo = await this.get(
             `/accounts/${this.accountId}/pages/projects/${this.projectName}`
-        )
-        return projectInfo.result
+        )        
+        return projectInfo;        
     }
 
     async getD1Databases() {
         const list = await this.get(`/accounts/${this.accountId}/d1/database`)
-        return list.result
+        return list
     }
 
     async getD1Database(name) {
         const databases = await this.getD1Databases()
-        const d1 = databases.filter(x => x.name == name)[0]
-        return d1
+        if (databases.ok) {
+            database = databases.result.result.filter(x => x.name == name);
+            if (database !== undefined && database !== null && database.length > 0) {
+                return {
+                    ok:true,
+                    result:database[0]
+                };
+            }
+            else {
+                return error([`database ${name} not found`],{});
+            }            
+        }
+        return databases;
     }
 
     async getD1DatabaseById(id) {
         const databases = await this.getD1Databases()
-        const d1 = databases.filter(x => x.uuid == id)[0]
-        return d1
+
+        if (databases.ok) {
+            let database = databases.result.result.filter(x => x.uuid == id);
+            if (database !== undefined && database !== null && database.length > 0) {
+                return {
+                    ok:true,
+                    result:database[0]
+                };
+            }
+            else {
+                return error([`database ${id} not found`],{});
+            }            
+        }
+        return databases;
     }
 
     async deleteD1ByName(dbName) {
         try {
             var d1 = await this.getD1Database(env, dbName)
-            if (d1) {
+            if (d1.ok) {
                 const uri = `/accounts/${this.accountId}/d1/database/${d1.uuid}`
                 var d1 = await this.del(uri)
                 return d1
             } else {
-                console.log(`D1 ${dbName} not found`)
+                return d1;
             }
         } catch (e) {
-            console.log('error while deleting' + dbName, e)
+            return error(['error while deleting' + dbName],{exception:e});            
         }
     }
 
@@ -133,7 +174,7 @@ export class D1 {
             var d1 = await this.del(uri)
             return d1
         } catch (e) {
-            console.log('error while deleting' + dbUuid, e)
+            return error(['error while deleting' + dbUuid],{exception:e});                 
         }
     }
 
@@ -150,18 +191,20 @@ export class D1 {
         try {
             const uri = `/accounts/${this.accountId}/d1/database/${d1Id}/query`
             const result = await this.post(uri, { sql: sql })
-            return result
+            return result;
         } catch (e) {
-            console.log('D1.js :: error while executing SQL ', sql)
-            console.log(e)
+            return error([`D1.js :: error while executing SQL ${sql}`],{exception:e});                     
         }
     }
 
     async bindD1(d1Id, bindingName) {
 
         const project = await this.getProject()
+        if (!project.ok) {
+            return project;
+        }
 
-        const production = project.deployment_configs.production
+        const production = project.result.result.deployment_configs.production
 
         if (production) {
             let binding = {}
@@ -181,6 +224,9 @@ export class D1 {
             var uri = `/accounts/${this.accountId}/pages/projects/${this.projectName}`
             return await this.patch(uri, payload)
         }
+        else {
+            return error([`no production deployment config found for ${this.projectName}`],project);
+        }
     }
 
     async unbindD1(d1Id) {
@@ -189,15 +235,20 @@ export class D1 {
         )
 
         var database = await this.getD1DatabaseById(d1Id)
-        var bindingName = database.name.toUpperCase()
+        if (!database.ok) {
+            return database;
+        }
+        var bindingName = database.result.name.toUpperCase()
 
-        console.log(
-            `unbind project ${this.projectName} --- ${bindingName}`
-        )
+        
 
-        const project = await this.getProject()
+        const project = await this.getProject();
+        if (!project.ok) {
+            return project;
+        }
 
-        const binding = project?.deployment_configs?.production?.d1_databases;
+        const binding = project?.result?.result?.deployment_configs?.production?.d1_databases;
+        
 
         // do not try to unbind if not bound
         if (
@@ -229,7 +280,10 @@ export class D1 {
 
             var uri = `/accounts/${this.accountId}/pages/projects/${this.projectName}`
             let patched = await this.patch(uri, payload)
-            console.log(`UNBIND ${bindingName} result :` ,patched);
+            return ok(patched);
+        }
+        else {
+            return error([`no D1 binding found for ${this.projectName}`,project]);
         }
     }
 }
