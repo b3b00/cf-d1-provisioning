@@ -123,10 +123,18 @@ router.delete('/d1/:tenant', withParams, withD1(), async (request, env) => {
 
 // get all data for the given tenant
 router.get('/d1/:tenant', withParams, withD1(), async (request, env) => {
-    const tenant = request.params.tenant    
-    var d1Fromcontext = env[tenant.toUpperCase()];    
-    const { results } = await d1Fromcontext.prepare('SELECT * FROM data').all()
-    return await renderOkJson(env, request, results)
+    try {
+        const tenant = request.params.tenant    
+        var d1Fromcontext = env[tenant.toUpperCase()];    
+        const { results } = await d1Fromcontext.prepare('SELECT * FROM data').all()
+        return await renderOkJson(env, request, results)
+    } catch (e) {
+        return await renderInternalServorErrorJson(env, request, {
+            message: `error while getting data for >${tenant}}< in project >${request.projectName}<`,
+            exception: e.message,
+            success: false,
+        });
+    }
 })
 
 // add a data row for a given tenant
