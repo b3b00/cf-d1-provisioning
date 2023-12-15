@@ -111,6 +111,7 @@
 	<label for="newtenant">tenant</label>
 	<input id="newtenant" name="tenant" type="text" bind:value={newTenant} on:change={createDb}/>
 
+<input id="new" name="new" type="button" value="New" on:click={createDb}/>
 {#if currentTenant !== null && currentTenant !== undefined}
 	<h2>Manage data</h2>
 

@@ -1,177 +1,155 @@
 // NOTE : _worker.js must be place at the root of the output dir == ./public for this app
 
-import { Router, withParams, withContent } from 'itty-router'
+import { Router, withParams, withContent, error } from 'itty-router'
 // import Mustache, { render } from 'mustache'
 import {
-    createD1,
-    bindD1,
-    executeSQL,
-    deleteD1ByName,
-    deleteD1ByUuid,
-    getD1Database,
-    getD1Databases,
-    GetProject
+    D1,
+    withD1
 } from './d1.js'
 
 const router = Router()
 
-async function GetFromOrCatchOrFetch(request, ttl, fetcher) {
-    let cache = caches.default
-    var cached = await cache.match(request)
-    if (cached) {
-        return cached
-    }
-    console.log(`getOrFetch : fetching`)
-    var response = await fetcher()
-    console.log(`getOrFetch : fetched`, response)
 
-    response.headers.set('Cache-Control', `max-age:${ttl}`)
-    console.log(`getOrFetch : caching`)
-    // NOTE : when using cache the reponse MUST be cloned before put to cache
-    cache.put(request, response.clone())
+const projectName = "cf-d1-provisioning";
 
-    return response
+
+async function renderOkJson(env, request, data) {
+    let response = await renderJson(env,request,data);     
+    return response;
 }
 
-// async function RenderTemplate(env, request, templatePath, view, mimeType) {
-//     var url = new URL(request.url)
-//     var templateUrl = `${url.origin}/${templatePath}`
-//     var templateRequest = new Request(templateUrl, request)
-//     var response = await env.ASSETS.fetch(templateRequest)
-//     var text = await response.text()
-//     var output = Mustache.render(text, view)
-//     var response = new Response(output)
-//     response.headers.set('Content-Type', mimeType)
-//     return response
-// }
+async function renderInternalServorErrorJson(env, request, data) {
+    return error(500,data);
+}
 
-async function RenderJSON(env, request, data) {
+async function renderBadRequestJson(env, request, data) {
+    return error(400,data);
+}
+
+async function renderJson(env, request, data) {
     const payload = JSON.stringify(data);
     var response = new Response(payload);
     response.headers.set('Content-Type', 'application/json')
     return response
 }
 
-// async function RenderHtml(env, request, templatePath, view) {
-//     return RenderTemplate(env, request, templatePath, view, 'text/html')
-// }
 
 // provision and bind a D1 instance with given tenant name
 // should be a POST !
-router.post('/d1/:tenant', withParams, withContent, async (request, env) => {
+router.post('/d1/:tenant', withParams, withContent,withD1(), async (request, env) => {
+
+    let d1 = request.D1;
+
     const tenant = request.params.tenant
-    try {
-        const appName = 'cf-d1-provisioning'
-        var logs = []
-        console.log(`new D1 for :>${tenant}<`)
-        logs.push(`new D1 for :>${tenant}<`)
+    try {        
         if (tenant) {            
-            let d1Name = `D1_${tenant}`
-            logs.push(`D1 Name :>${d1Name}<`)
-            console.log(`D1 Name :>${d1Name}<`)
-            var d1 = await createD1(env, d1Name)
-            logs.push(`d1 created :>${d1.result.uuid}<`)
-            console.log(`d1 created :>${d1.result.uuid}<`)
-            var creation = `DROP TABLE IF EXISTS data;
+            const d1Name = `D1_${tenant}`
+            const db = await d1.createD1(d1Name)
+            const creation = `DROP TABLE IF EXISTS data;
             CREATE TABLE data (id INT PRIMARY KEY, value TEXT);
             INSERT INTO data VALUES (1,'first data')`;
-            let sql = await executeSQL(env, creation, d1.result.uuid)
-            logs.push(`sql create executed`)            
-            console.log(`sql create executed`)
-            bind = await bindD1(env, d1.result.uuid, d1Name.toUpperCase(), appName)
-            logs.push(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
-            console.log(`d1 :>${d1.result.uuid}< bound to :>${appName}<`)
-            return await RenderJSON(env, request, {
-                "d1": d1,
+            const sql = await d1.executeSQL(creation, d1.result.uuid)
+            const bind = await d1.bindD1(d1.result.uuid, d1Name.toUpperCase())
+            return await RenderOkJSon(env, request, {
+                "success":true,
+                "d1": db,
                 "bind": bind,
-                "sql": sql,
-                "logs": logs
+                "sql": sql,                
             })
         }
-        return RenderJSON(env, request, { error: 'no tenant name', logs: logs })
-    } catch (e) {
-        return {
-            error: `error while provisioning D1 for :>${tenant}}<`,
-            exception: e,
+        return await renderBadRequestJson(env, request, { 
+            "success":false,
+            error: 'no tenant name'
         }
+        );
+    } catch (e) {
+        return await renderInternalServorErrorJson(env,request,{
+            success:false,
+            error: `error while provisioning D1 for :>${tenant}}<`,
+            exception: e.message,
+        });
     }
 })
 
 // get all databases
-router.get('/d1', withParams, async (request, env) => {
+router.get('/d1', withParams, withD1(), async (request, env) => {
+
+    let d1 = request.D1;
+
     try {
 
-        console.log('==================================================')
-        console.log('==   GET PROJECT cf-d1-provisioning ==============')
-        console.log('==================================================')
-        let project = await GetProject(env,'cf-d1-provisioning');
-        console.log(project);
-        console.log('=================================')
-        console.log('getting all databases from CF');
-        let databases = await getD1Databases(env)
+        let project = await d1.getProject();
+        let databases = await d1.getD1Databases(env)
+        // TODO : filter databases according to project bindings
         databases = databases.filter(x => x.name.startsWith("D1_"));
-        console.log(databases);
-        return await RenderJSON(env,request,databases)
+        return await renderOkJson(env,request,databases)
     } catch (e) {
         console.log(e);
-        return await RenderJSON(env,request,{"exception":e});
+        return await renderInternalServorErrorJson(env,request,
+            {
+                "message":`error while getting databases for ${request.projectName}`,
+                "success":false,
+                "exception":e.message
+            });
     }
 })
 
 // delete a database
-router.delete('/d1/:tenant', withParams, async (request, env) => {
+router.delete('/d1/:tenant', withParams, withD1(), async (request, env) => {
+
+    let d1 = request.D1;
+
     const tenant = request.params.tenant
-    try {
-        const appName = 'cf-d1-provisioning'
-        var logs = []
+    try {        
         console.log(`delete D1 for :>${tenant}<`)
-        logs.push(`delete D1 for :>${tenant}<`)
-        if (tenant) {            
-            let d1Uuid = `${tenant}`
-            var d1 = await deleteD1ByUuid(env, d1Uuid)            
+        if (tenant) {
+	    await d1.unbindD1(tenant);
+            const d1Uuid = `${tenant}`
+            const deleted = await d1.deleteD1ByUuid(d1Uuid);
+            return await renderOkJson(env,request,{success:true,deletedD1:deleted});        
         }
-        return RenderJSON(env, request, { error: 'no tenant name', logs: logs })
+        return await renderBadRequestJson(env, request, { success:false,message: 'no tenant name' })
     } catch (e) {
-        console.log(`error while deleting D1 for :>${tenant}}<`)
-        console.log(e)
+
+        return await renderInternalServorErrorJson(env,request,
+            {
+                message : `error while deleting D1 for >${tenant}}< in project >${request.projectName}<`,
+                exception:e.message,
+                success:false
+            });        
     }
 })
 
 // get all data for the given tenant
-router.get('/d1/:tenant', withParams, async (request, env) => {
+router.get('/d1/:tenant', withParams, withD1(), async (request, env) => {
     const tenant = request.params.tenant    
-    console.log(`getting data for tenant <${tenant}>`)
-    
-
-    console.log("---------------------------")
-    console.log('getting through env["D1_DALI"]');
     var d1Fromcontext = env[tenant.toUpperCase()];    
-    console.log('d1Fromcontext', d1Fromcontext)
     const { results } = await d1Fromcontext.prepare('SELECT * FROM data').all()
-    console.log(results)
-    console.log("---------------------------")
-
-    return RenderJSON(env, request, results)
+    return await renderOkJson(env, request, results)
 })
 
 // add a data row for a given tenant
 // should be a PUT
-router.put('/d1/:tenant', withParams, withContent, async (request, env) => {
+router.put('/d1/:tenant', withParams, withContent, withD1(), async (request, env) => {
+
     try {
         var tenant = request.params.tenant
         var data = await request.json()
-        console.log('*************************************')
-        console.log('*************************************')
         var d1Fromcontext = env[tenant.toUpperCase()]
-        console.log('d1Fromcontext', d1Fromcontext)
         await d1Fromcontext
             .prepare(
                 'INSERT INTO data (id, value) VALUES (?1, ?2)'
             )
             .bind(data.id,data.data)
-            .run()
+            .run();
+        return renderOkJson(env,request,{});
     } catch (e) {
-        console.log(e)
+        return await renderInternalServorErrorJson(env,request,
+            {
+                message : `error while updating data for >${tenant}}< in project >${request.projectName}<`,
+                exception:e.message,
+                success:false
+            });     
     }
 })
 
