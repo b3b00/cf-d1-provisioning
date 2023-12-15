@@ -2,23 +2,26 @@
 
 export function withD1ForProjectAndAuthentication(projectName, accountId, apiKey) {
     return (request, env) => {
-        let d1Api = new D1(accountId,apiKey,projectName);
-        request.D1 = d1Api;
+        let d1 = new D1(accountId,apiKey,projectName);
+        request.D1 = d1;
+        request.projectName = projectName;
     }
 }
 
 export function withD1ForProject(projectName) {
     return (request, env) => {
-        let d1Api = new D1(env.ACCOUNT_ID,env.API_KEY,projectName);
-        request.D1 = d1Api;
+        let d1 = new D1(env.ACCOUNT_ID,env.API_KEY,projectName);
+        request.D1 = d1;
+        request.projectName = projectName;
     };    
 }
 
 
 export function withD1(request, env) {
     return (request, env) => {
-        let d1Api = new D1(env.ACCOUNT_ID,env.API_KEY,env.PROJECT_NAME);
-        request.D1 = d1Api;
+        let d1 = new D1(env.ACCOUNT_ID,env.API_KEY,env.PROJECT_NAME);
+        request.D1 = d1;
+        request.projectName = env.PROJECT_NAME;
     };     
 };
 
@@ -89,7 +92,6 @@ export class D1 {
         var projectInfo = await this.get(
             `/accounts/${this.accountId}/pages/projects/${this.projectName}`
         )
-
         return projectInfo.result
     }
 
