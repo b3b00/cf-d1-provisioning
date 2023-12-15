@@ -48,9 +48,9 @@ router.post('/d1/:tenant', withParams, withContent,withD1(), async (request, env
             const creation = `DROP TABLE IF EXISTS data;
             CREATE TABLE data (id INT PRIMARY KEY, value TEXT);
             INSERT INTO data VALUES (1,'first data')`;
-            const sql = await d1.executeSQL(creation, d1.result.uuid)
-            const bind = await d1.bindD1(d1.result.uuid, d1Name.toUpperCase())
-            return await RenderOkJSon(env, request, {
+            const sql = await d1.executeSQL(creation, db.result.uuid)
+            const bind = await d1.bindD1(db.result.uuid, d1Name.toUpperCase())
+            return await renderOkJson(env, request, {
                 "success":true,
                 "d1": db,
                 "bind": bind,
