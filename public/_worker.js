@@ -5,7 +5,7 @@ import { Router, withParams, withContent, error } from 'itty-router'
 import {
     D1,
     withD1
-} from './d1.js'
+} from './src/d1.js'
 
 const router = Router()
 
