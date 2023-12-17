@@ -1,18 +1,33 @@
 // NOTE : _worker.js must be place at the root of the output dir == ./public for this app
 
-import { Router, withParams, withContent, error } from 'itty-router'
+import { Router, withParams, withContent, error, IRequest } from 'itty-router'
 // import Mustache, { render } from 'mustache'
 import {
     D1,
     withD1
 } from './src/d1.js'
 
+
+// define a custom RequestType
+type D1Request = {
+  d1: D1,
+  params: any
+} & IRequest
+
+// declare what's available in our env
+type Env = {
+  KV: KVNamespace
+}
+  
+  // create a convenient duple
+  type CF = [env: Env, context: ExecutionContext]
+
 const router = Router()
 
 
 const projectName = "cf-d1-provisioning";
 
-export function errorResult(errors,result) {
+export function errorResult(errors:string[],result:any) {
     return {
         ok:false,
         errors:errors,
@@ -20,7 +35,7 @@ export function errorResult(errors,result) {
     };
 }
 
-export function okResult(result) {
+export function okResult(result:any) {
     return {
         ok:true,
         result:result
@@ -28,20 +43,20 @@ export function okResult(result) {
 }
 
 
-async function renderOkJson(env, request, data) {
+async function renderOkJson(env : Env, request : D1Request, data) {
     let response = await renderJson(env,request,data);     
     return response;
 }
 
-async function renderInternalServorErrorJson(env, request, data) {
+async function renderInternalServorErrorJson(env : Env, request : D1Request, data: any) {
     return error(500,data);
 }
 
-async function renderBadRequestJson(env, request, data) {
+async function renderBadRequestJson(env:Env, request:D1Request, data) {
     return error(400,data);
 }
 
-async function renderJson(env, request, data) {
+async function renderJson(env:Env, request:D1Request, data:any) {
     const payload = JSON.stringify(data);
     var response = new Response(payload);
     response.headers.set('Content-Type', 'application/json')
@@ -51,7 +66,7 @@ async function renderJson(env, request, data) {
 
 // provision and bind a D1 instance with given tenant name
 // should be a POST !
-router.post('/d1/:tenant', withParams, withContent,withD1(), async (request, env) => {
+router.post<D1Request, CF>('/d1/:tenant', withParams, withContent,withD1(), async (request:D1Request, env:Env) => {
 
     let d1 = request.D1;
 
@@ -88,7 +103,7 @@ router.post('/d1/:tenant', withParams, withContent,withD1(), async (request, env
 })
 
 // get all databases
-router.get('/d1', withParams, withD1(), async (request, env) => {
+router.get<D1Request, CF>('/d1', withParams, withD1(), async (request, env) => {
 
     let d1 = request.D1;
 
@@ -118,7 +133,7 @@ router.get('/d1', withParams, withD1(), async (request, env) => {
 })
 
 // delete a database
-router.delete('/d1/:tenant', withParams, withD1(), async (request, env) => {
+router.delete<D1Request, CF>('/d1/:tenant', withParams, withD1(), async (request, env) => {
 
     let d1 = request.D1;
 
@@ -141,15 +156,15 @@ router.delete('/d1/:tenant', withParams, withD1(), async (request, env) => {
     } catch (e) {
 
         return await renderInternalServorErrorJson(env,request,
-            error([`error while deleting D1 for >${tenant}}< in project >${request.projectName}<`,e.message],null)
+            errorResult([`error while deleting D1 for >${tenant}}< in project >${request.projectName}<`,e.message],null)
             );        
     }
 })
 
 // get all data for the given tenant
-router.get('/d1/:tenant', withParams, withD1(), async (request, env) => {
-    try {
-        const tenant = request.params.tenant    
+router.get('/d1/:tenant', withParams, withD1(), async (request:D1Request, env:Env) => {
+    const tenant:string = request.params.tenant   
+    try {         
         var d1Fromcontext = env[tenant.toUpperCase()];    
         if (!d1Fromcontext) {
             return renderBadRequestJson(env,request,errorResult([`no bound D1 for ${tenant}`],null));
@@ -165,7 +180,7 @@ router.get('/d1/:tenant', withParams, withD1(), async (request, env) => {
 
 // add a data row for a given tenant
 // should be a PUT
-router.put('/d1/:tenant', withParams, withContent, withD1(), async (request, env) => {
+router.put('/d1/:tenant', withParams, withContent, withD1(), async (request:D1Request, env:Env) => {
 
     try {
         var tenant = request.params.tenant

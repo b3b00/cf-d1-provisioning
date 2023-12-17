@@ -1,12 +1,15 @@
+import { Guid } from "guid-typescript";
 
+import { RouteHandler } from "itty-router";
 
-export function error(errors,result=null) {
+export function error(errors:string[],result:any = null) {
     return {
         ok:false,
         errors:errors,
         result:result
     };
 }
+
 
 export function ok(result) {
     return {
@@ -15,7 +18,7 @@ export function ok(result) {
     };
 }
 
-export function withD1ForProjectAndAuthentication(projectName, accountId, apiKey) {
+export function withD1ForProjectAndAuthentication(projectName:string, accountId:Guid, apiKey:string) {
     return (request, env) => {
         let d1 = new D1(accountId,apiKey,projectName);
         request.D1 = d1;
@@ -32,13 +35,27 @@ export function withD1ForProject(projectName) {
 }
 
 
-export function withD1(request, env) {
+export function withD1():RouteHandler {
     return (request, env) => {
         let d1 = new D1(env.ACCOUNT_ID,env.API_KEY,env.PROJECT_NAME);
         request.D1 = d1;
         request.projectName = env.PROJECT_NAME;
     };     
 };
+
+export type D1Result<T> {
+    ok:boolean,
+    errors:string[],
+    result:T
+}
+
+export type ProjectInfo {
+    deployment_configs:DeploymentConfigs
+}
+
+export type DeploymentConfigs {
+
+}
 
 export class D1 {
     CF_API_URL = 'https://api.cloudflare.com/client/v4'
@@ -49,14 +66,14 @@ export class D1 {
 
     projectName
 
-    constructor(accountId, apiKey, projectName) {
+    constructor(accountId:Guid, apiKey:string, projectName:string) {
         this.projectName = projectName
         this.accountId = accountId
         this.apiKey = apiKey
     }
 
     ///accounts/${accountId}/d1/database/${dbUuid}/query
-    async request(uri, method, body) {
+    async request(uri:string, method:string, body:any) {
         var root = uri.startsWith('/') ? this.CF_API_URL : this.CF_API_URL + '/'
 
         var options = {
@@ -84,26 +101,26 @@ export class D1 {
             } else {
                 const content = await r.json()
 
-                return error(`request ${uri} returned ${r.status} - ${r.statusText}`,content);
+                return error([`request ${uri} returned ${r.status} - ${r.statusText}`],content);
             }
         } catch (e) {
-            return error(`request ${uri} raised ${e.message}`);
+            return error([`request ${uri} raised ${e.message}`],null);
         }
     }
 
-    async post(uri, body) {
+    async post(uri:string, body:any) {
         return await this.request(uri, 'POST', body)
     }
 
-    async patch(uri, body) {
+    async patch(uri:string, body:any) {
         return await this.request(uri, 'PATCH', body)
     }
 
-    async get(uri) {
+    async get(uri:string) {
         return await this.request(uri, 'GET', undefined)
     }
 
-    async del(uri) {
+    async del(uri:string) {
         return await this.request(uri, 'DELETE', undefined)
     }
 
@@ -119,10 +136,10 @@ export class D1 {
         return list
     }
 
-    async getD1Database(name) {
+    async getD1Database(name:string) {
         const databases = await this.getD1Databases()
         if (databases.ok) {
-            database = databases.result.result.filter(x => x.name == name);
+            const database = databases.result.result.filter(x => x.name == name);
             if (database !== undefined && database !== null && database.length > 0) {
                 return {
                     ok:true,
@@ -136,7 +153,7 @@ export class D1 {
         return databases;
     }
 
-    async getD1DatabaseById(id) {
+    async getD1DatabaseById(id:Guid) {
         const databases = await this.getD1Databases()
 
         if (databases.ok) {
@@ -148,28 +165,28 @@ export class D1 {
                 };
             }
             else {
-                return error([`database ${id} not found`],{});
+                return error([`database ${id} not found`],null);
             }            
         }
         return databases;
     }
 
-    async deleteD1ByName(dbName) {
+    async deleteD1ByName(dbName:string) {
         try {
             var d1 = await this.getD1Database(dbName)
             if (d1.ok) {
-                const uri = `/accounts/${this.accountId}/d1/database/${d1.uuid}`
-                var d1 = await this.del(uri)
+                const uri = `/accounts/${this.accountId}/d1/database/${d1.result.uuid}`
+                d1 = await this.del(uri)
                 return d1
             } else {
                 return d1;
             }
         } catch (e) {
-            return error(['error while deleting' + dbName],{exception:e});            
+            return error(['error while deleting' + dbName],{"exception":e});            
         }
     }
 
-    async deleteD1ByUuid(dbUuid) {
+    async deleteD1ByUuid(dbUuid:Guid) {
         try {
             const uri = `/accounts/${this.accountId}/d1/database/${dbUuid}`
             var d1 = await this.del(uri)
@@ -179,7 +196,7 @@ export class D1 {
         }
     }
 
-    async createD1(dbName) {
+    async createD1(dbName:string) {
         var payLoad = {
             name: dbName,
         }
@@ -188,7 +205,7 @@ export class D1 {
         return d1
     }
 
-    async executeSQL(sql, d1Id) {
+    async executeSQL(sql:string, d1Id:Guid) {
         try {
             const uri = `/accounts/${this.accountId}/d1/database/${d1Id}/query`
             const result = await this.post(uri, { sql: sql })
@@ -198,7 +215,7 @@ export class D1 {
         }
     }
 
-    async bindD1(d1Id, bindingName) {
+    async bindD1(d1Id:Guid, bindingName:string) {
 
         const project = await this.getProject()
         if (!project.ok) {
@@ -230,7 +247,7 @@ export class D1 {
         }
     }
 
-    async unbindD1(d1Id) {
+    async unbindD1(d1Id:Guid) {
         console.log(
             `unbind project ${this.projectName} --- ${d1Id}`
         )
@@ -284,7 +301,7 @@ export class D1 {
             return ok(patched);
         }
         else {
-            return error([`no D1 binding found for ${this.projectName}`,project]);
+            return error([`no D1 binding found for ${this.projectName}`],project);
         }
     }
 }
