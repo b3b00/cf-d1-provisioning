@@ -1,7 +1,7 @@
 {
     "name": "FSGT_TT_29",
     "private": true,
-    "type":"module",
+    "type": "module",
     "version": "1.0.0",
     "description": "D1",
     "scripts": {
@@ -14,10 +14,13 @@
     "license": "ISC",
     "devDependencies": {
         "better-sqlite3": "^8.0.1",
-        "prettier": "^1.17.0"
-
+        "prettier": "^1.17.0",
+        "typescript": "^5.3.3"
     },
     "dependencies": {
+        "@rollup/plugin-commonjs": "^24.0.0",
+        "@rollup/plugin-node-resolve": "^15.0.0",
+        "@rollup/plugin-terser": "^0.4.0",
         "cheerio": "^1.0.0-rc.2",
         "dayjs": "^1.11.10",
         "dracula-ui": "^1.0.3",
@@ -26,15 +29,12 @@
         "moment": "^2.24.0",
         "mustache": "^4.2.0",
         "node-fetch": "^3.3.2",
-        "serverless-cloudflare-workers": "^1.2.0",
-        "sync-request": "6.0.0",
-        "@rollup/plugin-commonjs": "^24.0.0",
-        "@rollup/plugin-node-resolve": "^15.0.0",
-        "@rollup/plugin-terser": "^0.4.0",
         "rollup": "^3.15.0",
         "rollup-plugin-css-only": "^4.3.0",
         "rollup-plugin-livereload": "^2.0.0",
         "rollup-plugin-svelte": "^7.1.2",
-        "svelte": "^4.0.0"
+        "serverless-cloudflare-workers": "^1.2.0",
+        "svelte": "^4.0.0",
+        "sync-request": "6.0.0"
     }
 }
