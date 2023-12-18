@@ -1,8 +1,8 @@
 import { Guid } from "guid-typescript";
 
 import { RouteHandler } from "itty-router";
-
-export function error(errors:string[],result:any = null) {
+import { ProjectInfo, DeploymentConfig, D1, D1Result } from "./types";
+export function error<T>(errors:string[],result:T = null) : D1Result<T> {
     return {
         ok:false,
         errors:errors,
@@ -11,16 +11,17 @@ export function error(errors:string[],result:any = null) {
 }
 
 
-export function ok(result) {
+export function ok<T>(result)  : D1Result<T>{
     return {
         ok:true,
-        result:result
+        result:result,
+        errors:[]
     };
 }
 
 export function withD1ForProjectAndAuthentication(projectName:string, accountId:Guid, apiKey:string) {
     return (request, env) => {
-        let d1 = new D1(accountId,apiKey,projectName);
+        let d1 = new D1Client(accountId,apiKey,projectName);
         request.D1 = d1;
         request.projectName = projectName;
     }
@@ -28,7 +29,7 @@ export function withD1ForProjectAndAuthentication(projectName:string, accountId:
 
 export function withD1ForProject(projectName) {
     return (request, env) => {
-        let d1 = new D1(env.ACCOUNT_ID,env.API_KEY,projectName);
+        let d1 = new D1Client(env.ACCOUNT_ID,env.API_KEY,projectName);
         request.D1 = d1;
         request.projectName = projectName;
     };    
@@ -37,27 +38,14 @@ export function withD1ForProject(projectName) {
 
 export function withD1():RouteHandler {
     return (request, env) => {
-        let d1 = new D1(env.ACCOUNT_ID,env.API_KEY,env.PROJECT_NAME);
+        let d1 = new D1Client(env.ACCOUNT_ID,env.API_KEY,env.PROJECT_NAME);
         request.D1 = d1;
         request.projectName = env.PROJECT_NAME;
     };     
 };
 
-export type D1Result<T>  = {
-    ok:boolean,
-    errors:string[],
-    result:T
-}
 
-export type ProjectInfo = {
-    deployment_configs:DeploymentConfigs
-}
-
-export type DeploymentConfigs = {
-
-}
-
-export class D1 {
+export class D1Client {
     CF_API_URL = 'https://api.cloudflare.com/client/v4'
 
     accountId
@@ -73,7 +61,7 @@ export class D1 {
     }
 
     ///accounts/${accountId}/d1/database/${dbUuid}/query
-    async request(uri:string, method:string, body:any) {
+    async request<T>(uri:string, method:string, body:any) : Promise<D1Result<T>> {
         var root = uri.startsWith('/') ? this.CF_API_URL : this.CF_API_URL + '/'
 
         var options = {
@@ -93,11 +81,8 @@ export class D1 {
             var r = await fetch(root + uri, options)
             if (r.status == 200) {
                 var content = await r.text()
-                var data = JSON.parse(content)
-                return {
-                    ok:true,
-                    result:data
-                };                
+                var data = JSON.parse(content) as T
+                return ok(data);                
             } else {
                 const content = await r.json()
 
@@ -108,24 +93,24 @@ export class D1 {
         }
     }
 
-    async post(uri:string, body:any) {
+    async post<T>(uri:string, body:T) {
         return await this.request(uri, 'POST', body)
     }
 
-    async patch(uri:string, body:any) {
+    async patch<T>(uri:string, body:T) {
         return await this.request(uri, 'PATCH', body)
     }
 
-    async get(uri:string) {
-        return await this.request(uri, 'GET', undefined)
+    async get<T>(uri:string) : Promise<T> {
+        return await this.request(uri, 'GET', undefined) as T
     }
 
     async del(uri:string) {
         return await this.request(uri, 'DELETE', undefined)
     }
 
-    async getProject() {
-        var projectInfo = await this.get(
+    async getProject() : Promise<ProjectInfo> {
+        var projectInfo = await this.get<ProjectInfo>(
             `/accounts/${this.accountId}/pages/projects/${this.projectName}`
         )        
         console.log("PROJECT");
@@ -133,14 +118,14 @@ export class D1 {
         return projectInfo;        
     }
 
-    async getD1Databases() {
-        const list = await this.get(`/accounts/${this.accountId}/d1/database`)
+    async getD1Databases() : Promise<D1Result<D1[]>> {
+        const list = await this.get<D1[]>(`/accounts/${this.accountId}/d1/database`)
         console.log("DATABASES");
         console.log(list)
         return list
     }
 
-    async getD1Database(name:string) {
+    async getD1Database(name:string) : Promise<D1> {
         const databases = await this.getD1Databases()
         if (databases.ok) {
             const database = databases.result.result.filter(x => x.name == name);

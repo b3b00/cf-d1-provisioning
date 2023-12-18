@@ -3,9 +3,10 @@
 import { Router, withParams, withContent, error, IRequest } from 'itty-router'
 import {KVNamespace, ExecutionContext } from '@cloudflare/workers-types'
 import {
-    D1,
+    D1Client,
     withD1
 } from './src/d1.js'
+import * from './src/types.js';
 
 
 // define a custom RequestType
