@@ -1,7 +1,7 @@
 // NOTE : _worker.js must be place at the root of the output dir == ./public for this app
 
 import { Router, withParams, withContent, error, IRequest } from 'itty-router'
-// import Mustache, { render } from 'mustache'
+import {KVNamespace, ExecutionContext } from '@cloudflare/workers-types'
 import {
     D1,
     withD1

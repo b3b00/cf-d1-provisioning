@@ -1,5 +1,5 @@
 {
-    "name": "FSGT_TT_29",
+    "name": "D1 provisioner",
     "private": true,
     "type": "module",
     "version": "1.0.0",
@@ -8,7 +8,9 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "format": "prettier --write '**/*.{js,css,json,md}'",
         "dev": "wrangler pages dev ./public/ ",
-        "build": "rollup -c"
+        "build:front": "rollup -c",
+        "build:back": "node_modules/typescript/bin/tsc",
+        "build":"npm run build:front && npm run build:back"
     },
     "author": "{{ authors }}",
     "license": "ISC",

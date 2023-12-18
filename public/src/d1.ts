@@ -43,17 +43,17 @@ export function withD1():RouteHandler {
     };     
 };
 
-export type D1Result<T> {
+export type D1Result<T>  = {
     ok:boolean,
     errors:string[],
     result:T
 }
 
-export type ProjectInfo {
+export type ProjectInfo = {
     deployment_configs:DeploymentConfigs
 }
 
-export type DeploymentConfigs {
+export type DeploymentConfigs = {
 
 }
 
@@ -128,11 +128,15 @@ export class D1 {
         var projectInfo = await this.get(
             `/accounts/${this.accountId}/pages/projects/${this.projectName}`
         )        
+        console.log("PROJECT");
+        console.log(projectInfo);
         return projectInfo;        
     }
 
     async getD1Databases() {
         const list = await this.get(`/accounts/${this.accountId}/d1/database`)
+        console.log("DATABASES");
+        console.log(list)
         return list
     }
 
