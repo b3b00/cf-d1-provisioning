@@ -6,7 +6,7 @@ import {
     D1Client,
     withD1
 } from './src/d1.js'
-import * from './src/types.js';
+import {D1,D1Result,CFResult,ProjectInfo} from './src/types.ts';
 
 
 // define a custom RequestType
@@ -104,9 +104,9 @@ router.post<D1Request, CF>('/d1/:tenant', withParams, withContent,withD1(), asyn
 })
 
 // get all databases
-router.get<D1Request, CF>('/d1', withParams, withD1(), async (request, env) => {
+router.get<D1Request, CF>('/d1', withParams, withD1(), async (request: D1Request, env: Env) => {
 
-    let d1 = request.D1;
+    const d1 : D1Client = request.D1;
 
     try {
 
@@ -114,15 +114,15 @@ router.get<D1Request, CF>('/d1', withParams, withD1(), async (request, env) => {
         if (!project.ok) {
             return await renderInternalServorErrorJson(env,request,project);
         }
-        let databases = await d1.getD1Databases(env);
+        let databases = await d1.getD1Databases();
         if (!databases.ok) {
             return await renderInternalServorErrorJson(env,request,databases);
         }
-        const bindings = project?.result?.result?.deployment_configs?.production?.d1_databases;
+        const bindings = project?.result?.deployment_configs?.production?.d1_databases;
         if (bindings) {
             var uuids = Object.values(bindings).map(x => x.id);
-            databases = databases.result.result.filter(x => uuids.includes(x.uuid));        
-            return await renderOkJson(env,request,okResult(databases))
+            const bases = databases.result.filter(x => uuids.includes(x.id));        
+            return await renderOkJson(env,request,okResult(bases))
         }
         else {
             return await renderOkJson(env,request,okResult([]));

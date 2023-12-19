@@ -4,6 +4,8 @@
 //
 //   "Set quicktype target language"
 
+import { Guid } from "guid-typescript";
+
 export interface D1Result<T> {
     ok:     boolean;
     errors: string[];
@@ -71,7 +73,8 @@ export interface CanonicalDeployment {
 
 
 export interface D1 {
-    id: string;
+    id: Guid;
+    name: string;
 }
 
 export interface DeploymentTrigger {

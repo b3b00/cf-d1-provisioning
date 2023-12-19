@@ -109,44 +109,45 @@ export class D1Client {
         return await this.request(uri, 'DELETE', undefined)
     }
 
-    async getProject() : Promise<ProjectInfo> {
+    async getProject() : Promise<D1Result<ProjectInfo>> {
         var projectInfo = await this.get<ProjectInfo>(
             `/accounts/${this.accountId}/pages/projects/${this.projectName}`
         )        
         console.log("PROJECT");
         console.log(projectInfo);
-        return projectInfo;        
+        return ok(projectInfo);        
     }
 
     async getD1Databases() : Promise<D1Result<D1[]>> {
         const list = await this.get<D1[]>(`/accounts/${this.accountId}/d1/database`)
         console.log("DATABASES");
-        console.log(list)
-        return list
+        console.log(list);
+        return ok(list);
     }
 
-    async getD1Database(name:string) : Promise<D1> {
+    async getD1Database(name:string) : Promise<D1Result<D1>> {
         const databases = await this.getD1Databases()
         if (databases.ok) {
-            const database = databases.result.result.filter(x => x.name == name);
+            const database = databases.result.filter(x => x.name == name);
             if (database !== undefined && database !== null && database.length > 0) {
                 return {
                     ok:true,
                     result:database[0]
-                };
+                } as D1Result<D1>;
             }
             else {
-                return error([`database ${name} not found`],{});
+                
+                return error<D1>([`database ${name} not found`],{id:Guid.parse(Guid.EMPTY),name:undefined});
             }            
         }
-        return databases;
+        return {ok:false,errors:databases.errors,result:undefined};
     }
 
     async getD1DatabaseById(id:Guid) {
         const databases = await this.getD1Databases()
 
         if (databases.ok) {
-            let database = databases.result.result.filter(x => x.uuid == id);
+            let database = databases.result.filter(x => x.id == id);
             if (database !== undefined && database !== null && database.length > 0) {
                 return {
                     ok:true,
@@ -164,9 +165,9 @@ export class D1Client {
         try {
             var d1 = await this.getD1Database(dbName)
             if (d1.ok) {
-                const uri = `/accounts/${this.accountId}/d1/database/${d1.result.uuid}`
-                d1 = await this.del(uri)
-                return d1
+                const uri = `/accounts/${this.accountId}/d1/database/${d1.result.id}`
+                const deleted = await this.del(uri)
+                return deleted
             } else {
                 return d1;
             }
@@ -211,7 +212,7 @@ export class D1Client {
             return project;
         }
 
-        const production = project.result.result.deployment_configs.production
+        const production = project.result.deployment_configs.production
 
         if (production) {
             let binding = {}
@@ -254,7 +255,7 @@ export class D1Client {
             return project;
         }
 
-        const binding = project?.result?.result?.deployment_configs?.production?.d1_databases;
+        const binding = project?.result?.deployment_configs?.production?.d1_databases;
         
 
         // do not try to unbind if not bound
