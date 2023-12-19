@@ -9,7 +9,7 @@
         "format": "prettier --write '**/*.{js,css,json,md}'",
         "dev": "wrangler pages dev ./public/ ",
         "build:front": "rollup -c",
-        "build:back": "node_modules/typescript/bin/tsc",
+        "build:back": "tsc",
         "build":"npm run build:front && npm run build:back"
     },
     "author": "{{ authors }}",

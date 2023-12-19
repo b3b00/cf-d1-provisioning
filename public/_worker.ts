@@ -6,7 +6,7 @@ import {
     D1Client,
     withD1
 } from './src/d1.js'
-import {D1,D1Result,CFResult,ProjectInfo} from './src/types.ts';
+import {D1,D1Result,CFResult,ProjectInfo} from './src/types';
 
 
 // define a custom RequestType
@@ -82,11 +82,11 @@ router.post<D1Request, CF>('/d1/:tenant', withParams, withContent,withD1(), asyn
             const creation = `DROP TABLE IF EXISTS data;
             CREATE TABLE data (id INT PRIMARY KEY, value TEXT);
             INSERT INTO data VALUES (1,'first data')`;
-            const sql = await d1.executeSQL(creation, db.result.result.uuid)
+            const sql = await d1.executeSQL(creation, db.result.uuid)
             if (!sql.ok) {
                 return await renderInternalServorErrorJson(env,request,sql);
             }
-            const bind = await d1.bindD1(db.result.result.uuid, d1Name.toUpperCase())
+            const bind = await d1.bindD1(db.result.uuid, d1Name.toUpperCase())
             if (!bind.ok) {
                 return await renderInternalServorErrorJson(env,request,bind);
             }
@@ -120,8 +120,8 @@ router.get<D1Request, CF>('/d1', withParams, withD1(), async (request: D1Request
         }
         const bindings = project?.result?.deployment_configs?.production?.d1_databases;
         if (bindings) {
-            var uuids = Object.values(bindings).map(x => x.id);
-            const bases = databases.result.filter(x => uuids.includes(x.id));        
+            var uuids = Object.values(bindings).map(x => x.id);                
+            const bases = databases.result.filter(x => uuids.includes(x.uuid));        
             return await renderOkJson(env,request,okResult(bases))
         }
         else {

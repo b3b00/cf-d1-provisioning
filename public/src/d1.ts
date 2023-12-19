@@ -81,8 +81,8 @@ export class D1Client {
             var r = await fetch(root + uri, options)
             if (r.status == 200) {
                 var content = await r.text()
-                var data = JSON.parse(content) as T
-                return ok(data);                
+                var data = JSON.parse(content) 
+                return ok(data.result as T);                
             } else {
                 const content = await r.json()
 
@@ -110,19 +110,19 @@ export class D1Client {
     }
 
     async getProject() : Promise<D1Result<ProjectInfo>> {
-        var projectInfo = await this.get<ProjectInfo>(
+        var projectInfo = await this.get<D1Result<ProjectInfo>>(
             `/accounts/${this.accountId}/pages/projects/${this.projectName}`
         )        
         console.log("PROJECT");
         console.log(projectInfo);
-        return ok(projectInfo);        
+        return projectInfo;        
     }
 
     async getD1Databases() : Promise<D1Result<D1[]>> {
-        const list = await this.get<D1[]>(`/accounts/${this.accountId}/d1/database`)
+        const list = await this.get<D1Result<D1[]>>(`/accounts/${this.accountId}/d1/database`)
         console.log("DATABASES");
         console.log(list);
-        return ok(list);
+        return list;
     }
 
     async getD1Database(name:string) : Promise<D1Result<D1>> {
@@ -136,8 +136,8 @@ export class D1Client {
                 } as D1Result<D1>;
             }
             else {
-                
-                return error<D1>([`database ${name} not found`],{id:Guid.parse(Guid.EMPTY),name:undefined});
+                const empty = Guid.parse(Guid.EMPTY);
+                return error<D1>([`database ${name} not found`],{uuid:empty,name:undefined});
             }            
         }
         return {ok:false,errors:databases.errors,result:undefined};
@@ -147,7 +147,7 @@ export class D1Client {
         const databases = await this.getD1Databases()
 
         if (databases.ok) {
-            let database = databases.result.filter(x => x.id == id);
+            let database = databases.result.filter(x => x.uuid == id);
             if (database !== undefined && database !== null && database.length > 0) {
                 return {
                     ok:true,
@@ -165,7 +165,7 @@ export class D1Client {
         try {
             var d1 = await this.getD1Database(dbName)
             if (d1.ok) {
-                const uri = `/accounts/${this.accountId}/d1/database/${d1.result.id}`
+                const uri = `/accounts/${this.accountId}/d1/database/${d1.result.uuid}`
                 const deleted = await this.del(uri)
                 return deleted
             } else {

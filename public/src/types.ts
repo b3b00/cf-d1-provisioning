@@ -73,7 +73,8 @@ export interface CanonicalDeployment {
 
 
 export interface D1 {
-    id: Guid;
+    //id: Guid;
+    uuid:Guid;
     name: string;
 }
 
