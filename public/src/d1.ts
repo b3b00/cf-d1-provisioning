@@ -1,7 +1,7 @@
 import { Guid } from "guid-typescript";
 
 import { RouteHandler } from "itty-router";
-import { ProjectInfo, DeploymentConfig, D1, D1Result, EnvVarType } from "./types";
+import { ProjectInfo, DeploymentConfig, D1, D1Result, EnvVarType, EnvVarValue } from "./types";
 export function error<T>(errors:string[],result:T = null) : D1Result<T> {
     return {
         ok:false,
@@ -39,7 +39,7 @@ export function withD1ForProject(projectName) {
 export function withD1():RouteHandler {
     return (request, env) => {
         let d1 = new D1Client(env.ACCOUNT_ID,env.API_KEY,env.PROJECT_NAME);
-        request.D1 = d1;
+        request.D1 = d1;        
         request.projectName = env.PROJECT_NAME;
     };     
 };
@@ -296,23 +296,28 @@ export class D1Client {
         }
     }
 
-    async createProject(tenant : string) {
-        const tenantProjectName = `${tenant}_tenant`;
-        let d1Result = await this.createD1(`D1_${tenant}`);
-        if (d1Result.ok) {
-            let d1 = d1Result.result;
-        let projectResult = await this.getProject() ;
-        if (projectResult.ok) {
-         let project = projectResult.result;
-         project.name=tenantProjectName;
-         project.canonical_deployment=null;
-         project.deployment_configs.production.d1_databases.set(`D1_${tenant.toUpperCase}`,d1);
-         project.deployment_configs.production.env_vars.clear();
-         project.deployment_configs.production.env_vars.set('PROJECT_NAME',{"type":EnvVarType.PlainText,"value":tenantProjectName});
-         project.deployment_configs.production.env_vars.set('API_KEY',{"type":EnvVarType.Secret,"value":this.apiKey});
-         project.deployment_configs.production.env_vars.set('ACCOUNT_ID',{"type":EnvVarType.Secret,"value":this.accountId.toString()});
-        }
-    }
+    async createProject(tenant : string, d1:D1) : Promise<D1Result<ProjectInfo>> {
+        console.log(`D1.createProject(${tenant}) : start`);
+        const tenantProjectName = `${tenant}_tenant`;  
         
-    }
+        let projectResult = await this.getProject() ;        
+        if (!projectResult.ok) {
+            console.log(`D1.createProject(${tenant}) : get current project failed`,projectResult.errors);
+            return projectResult;
+        }
+        console.log(`D1.createProject(${tenant}) : get current project succeedded `,projectResult.result);
+        let project = Object.assign({}, projectResult.result);
+        project.name=tenantProjectName;
+        project.canonical_deployment=null;
+        project.deployment_configs.production.d1_databases[`D1_${tenant.toUpperCase}`]=d1;
+        project.deployment_configs.production.env_vars = new Map<string,EnvVarValue>;
+        project.deployment_configs.production.env_vars['PROJECT_NAME'] = {"type":EnvVarType.PlainText,"value":tenantProjectName};
+        project.deployment_configs.production.env_vars['API_KEY']={"type":EnvVarType.Secret,"value":this.apiKey};
+        project.deployment_configs.production.env_vars['ACCOUNT_ID']={"type":EnvVarType.Secret,"value":this.accountId.toString()};
+        const uri = `/accounts/${this.accountId}/pages/projects`;
+        let r = await this.post(uri,project);
+        console.log(`D1.createProject(${tenant}) : POST`,r);
+        return r;
+    }        
 }
+
