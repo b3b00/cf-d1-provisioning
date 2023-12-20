@@ -103,6 +103,16 @@ export interface KVNamespace {
     namespace_id: string;
 }
 
+export enum EnvVarType {
+    PlainText = 'plain_text',
+    Secret = "secret_text"
+}
+
+export interface EnvVarValue {    
+        type: EnvVarType;
+        value: string;
+}
+
 
 
 export interface Stage {
@@ -136,15 +146,15 @@ export interface DeploymentConfigs {
 }
 
 export interface DeploymentConfig {
-    env_vars:                             CanonicalDeploymentEnvVars | null;
+    env_vars:                             Map<string,EnvVarValue> | null;
     fail_open:                            boolean;
     always_use_latest_compatibility_date: boolean;
     compatibility_date:                   string;
     compatibility_flags:                  any[];
     build_image_major_version:            number;
     usage_model:                          string;
-    kv_namespaces?:                       Map<string,KVNamespace>;
-    d1_databases?:                        Map<string,D1>;
+    kv_namespaces?:                       Map<string,KVNamespace> | null;
+    d1_databases?:                        Map<string,D1> | null;
 }
 
 export interface LatestDeployment {
@@ -176,10 +186,10 @@ export interface LatestDeploymentEnvVars {
 
 export interface ResultSource {
     type:   string;
-    config: FluffyConfig;
+    config: SourceConfig;
 }
 
-export interface FluffyConfig {
+export interface SourceConfig {
     owner:                          string;
     repo_name:                      string;
     production_branch:              string;

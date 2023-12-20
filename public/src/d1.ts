@@ -1,7 +1,7 @@
 import { Guid } from "guid-typescript";
 
 import { RouteHandler } from "itty-router";
-import { ProjectInfo, DeploymentConfig, D1, D1Result } from "./types";
+import { ProjectInfo, DeploymentConfig, D1, D1Result, EnvVarType } from "./types";
 export function error<T>(errors:string[],result:T = null) : D1Result<T> {
     return {
         ok:false,
@@ -48,11 +48,11 @@ export function withD1():RouteHandler {
 export class D1Client {
     CF_API_URL = 'https://api.cloudflare.com/client/v4'
 
-    accountId
+    accountId : Guid;
 
-    apiKey
+    apiKey : string;
 
-    projectName
+    projectName : string;
 
     constructor(accountId:Guid, apiKey:string, projectName:string) {
         this.projectName = projectName
@@ -93,16 +93,16 @@ export class D1Client {
         }
     }
 
-    async post<T>(uri:string, body:T) {
-        return await this.request(uri, 'POST', body)
+    async post<T>(uri:string, body:T) : Promise<D1Result<T>> {
+        return await this.request<T>(uri, 'POST', body)
     }
 
     async patch<T>(uri:string, body:T) {
         return await this.request(uri, 'PATCH', body)
     }
 
-    async get<T>(uri:string) : Promise<T> {
-        return await this.request(uri, 'GET', undefined) as T
+    async get<T>(uri:string) : Promise<D1Result<T>> {
+        return await this.request<T>(uri, 'GET', undefined);
     }
 
     async del(uri:string) {
@@ -110,7 +110,7 @@ export class D1Client {
     }
 
     async getProject() : Promise<D1Result<ProjectInfo>> {
-        var projectInfo = await this.get<D1Result<ProjectInfo>>(
+        var projectInfo = await this.get<ProjectInfo>(
             `/accounts/${this.accountId}/pages/projects/${this.projectName}`
         )        
         console.log("PROJECT");
@@ -119,7 +119,7 @@ export class D1Client {
     }
 
     async getD1Databases() : Promise<D1Result<D1[]>> {
-        const list = await this.get<D1Result<D1[]>>(`/accounts/${this.accountId}/d1/database`)
+        const list = await this.get<D1[]>(`/accounts/${this.accountId}/d1/database`)
         console.log("DATABASES");
         console.log(list);
         return list;
@@ -186,12 +186,13 @@ export class D1Client {
         }
     }
 
-    async createD1(dbName:string) {
-        var payLoad = {
+    async createD1(dbName:string) : Promise<D1Result<D1>> {
+        var payLoad:D1 = {
             name: dbName,
+            uuid: Guid.parse(Guid.EMPTY)
         }
         const uri = `/accounts/${this.accountId}/d1/database`
-        var d1 = await this.post(uri, payLoad)
+        var d1 = await this.post<D1>(uri, payLoad)
         return d1
     }
 
@@ -293,5 +294,25 @@ export class D1Client {
         else {
             return error([`no D1 binding found for ${this.projectName}`],project);
         }
+    }
+
+    async createProject(tenant : string) {
+        const tenantProjectName = `${tenant}_tenant`;
+        let d1Result = await this.createD1(`D1_${tenant}`);
+        if (d1Result.ok) {
+            let d1 = d1Result.result;
+        let projectResult = await this.getProject() ;
+        if (projectResult.ok) {
+         let project = projectResult.result;
+         project.name=tenantProjectName;
+         project.canonical_deployment=null;
+         project.deployment_configs.production.d1_databases.set(`D1_${tenant.toUpperCase}`,d1);
+         project.deployment_configs.production.env_vars.clear();
+         project.deployment_configs.production.env_vars.set('PROJECT_NAME',{"type":EnvVarType.PlainText,"value":tenantProjectName});
+         project.deployment_configs.production.env_vars.set('API_KEY',{"type":EnvVarType.Secret,"value":this.apiKey});
+         project.deployment_configs.production.env_vars.set('ACCOUNT_ID',{"type":EnvVarType.Secret,"value":this.accountId.toString()});
+        }
+    }
+        
     }
 }
