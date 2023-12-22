@@ -176,10 +176,10 @@ export interface LatestDeploymentEnvVars {
 
 export interface ResultSource {
     type:   string;
-    config: FluffyConfig;
+    config: SourceConfig;
 }
 
-export interface FluffyConfig {
+export interface SourceConfig {
     owner:                          string;
     repo_name:                      string;
     production_branch:              string;
@@ -189,4 +189,11 @@ export interface FluffyConfig {
     preview_deployment_setting:     string;
     preview_branch_includes:        string[];
     preview_branch_excludes:        any[];
+}
+
+export interface Deployment {
+    id: Guid;
+    project_id: Guid;
+    environment: string;
+    created_on: Date;
 }

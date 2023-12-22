@@ -8,3 +8,6 @@ dist/*
 .dev.vars
 wrangler.dev.toml
 public/bundle.*
+public/_worker.js
+public/src/d1.js
+public/src/types.js

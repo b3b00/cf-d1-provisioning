@@ -1,7 +1,7 @@
 import { Guid } from "guid-typescript";
 
 import { RouteHandler } from "itty-router";
-import { ProjectInfo, DeploymentConfig, D1, D1Result } from "./types";
+import { ProjectInfo, DeploymentConfig, D1, D1Result, Deployment } from "./types";
 export function error<T>(errors:string[],result:T = null) : D1Result<T> {
     return {
         ok:false,
@@ -293,5 +293,18 @@ export class D1Client {
         else {
             return error([`no D1 binding found for ${this.projectName}`],project);
         }
+    }
+
+    async redeploy() 
+    {
+        const deploymentsUri = `/accounts/${this.accountId}/pages/projects/${this.projectName}/deployments`;
+        const deployments = await this.get<Deployment[]>(deploymentsUri);
+        console.log(deployments);
+        const sorteddeployments = deployments.sort((x,y)=> x.created_on > y.created_on ? 1 : (x.created_on == y.created_on ? 0 : -1))
+        const LastDeployment = sorteddeployments[sorteddeployments.length-1];
+
+        const retryUri = `/accounts/${this.accountId}/pages/projects/${this.projectName}/deployments/${LastDeployment.id}/retry`
+        console.log("retry deployment", LastDeployment, retryUri);
+        const retried = await this.post(retryUri,{});
     }
 }

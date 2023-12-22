@@ -90,6 +90,12 @@ router.post<D1Request, CF>('/d1/:tenant', withParams, withContent,withD1(), asyn
             if (!bind.ok) {
                 return await renderInternalServorErrorJson(env,request,bind);
             }
+
+            const retryDeployment = await d1.redeploy();
+            if (!retryDeployment.ok) {
+                return await renderInternalServorErrorJson(env,request,bind);
+            }
+
             return await renderOkJson(env, request, okResult({
                 "d1": db,
                 "bind": bind,
