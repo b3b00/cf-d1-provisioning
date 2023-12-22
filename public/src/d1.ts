@@ -1,7 +1,7 @@
 import { Guid } from "guid-typescript";
 
 import { RouteHandler } from "itty-router";
-import { ProjectInfo, DeploymentConfig, D1, D1Result, Deployment } from "./types";
+import { ProjectInfo, DeploymentConfig, D1, D1Result, Deployment, DeploymentStage } from "./types";
 export function error<T>(errors:string[],result:T = null) : D1Result<T> {
     return {
         ok:false,
@@ -93,12 +93,12 @@ export class D1Client {
         }
     }
 
-    async post<T>(uri:string, body:T) {
-        return await this.request(uri, 'POST', body)
+    async post<T>(uri:string, body:T|null) {
+        return await this.request(uri, 'POST', body) as T
     }
 
-    async patch<T>(uri:string, body:T) {
-        return await this.request(uri, 'PATCH', body)
+    async patch<T>(uri:string, body:T|null) {
+        return await this.request(uri, 'PATCH', body) as T
     }
 
     async get<T>(uri:string) : Promise<T> {
@@ -297,14 +297,54 @@ export class D1Client {
 
     async redeploy() 
     {
+            const empty:Deployment = {
+                id: Guid.parse(Guid.EMPTY),
+    project_id: Guid.parse(Guid.EMPTY),
+    environment: "",
+    created_on: new Date(2023,10,22),
+    stages: []
+}
+ 
+
+
         const deploymentsUri = `/accounts/${this.accountId}/pages/projects/${this.projectName}/deployments`;
-        const deployments = await this.get<Deployment[]>(deploymentsUri);
-        console.log(deployments);
-        const sorteddeployments = deployments.sort((x,y)=> x.created_on > y.created_on ? 1 : (x.created_on == y.created_on ? 0 : -1))
+        const deployments = await this.get<D1Result<Deployment[]>>(deploymentsUri);
+        if (!deployments.ok) {
+            return deployments;
+        }
+        console.log(deployments.result);
+        const sorteddeployments = deployments.result.sort((x,y)=> x.created_on > y.created_on ? 1 : (x.created_on == y.created_on ? 0 : -1))
         const LastDeployment = sorteddeployments[sorteddeployments.length-1];
 
         const retryUri = `/accounts/${this.accountId}/pages/projects/${this.projectName}/deployments/${LastDeployment.id}/retry`
         console.log("retry deployment", LastDeployment, retryUri);
-        const retried = await this.post(retryUri,{});
+        let retried:D1Result<Deployment> = await this.post<D1Result<Deployment>>(retryUri,null);//{"ok":true,"result":empty,"errors":[]});
+        if (!retried.ok) {
+            return retried;
+        }
+
+        console.log('retried :: ',retried.result);
+
+        while (!this.isDone(retried.result)) {
+            retried = await this.getDeployment(retried.result.id);
+        }
+
+        return retried;
+    }
+
+    isDone(deployment: Deployment) : boolean {
+        const stages = deployment.stages;
+        const done = stages.map(x => x.ended_on !== null && x.ended_on !== undefined).reduce((x,y) => x && y);
+        for(let i = 0; i < stages.length; i++) {
+            const stage = stages[i];
+            console.log(`${stage.name} :: ${stage.started_on} -> ${stage.ended_on} // ${stage.status}`);
+        }
+        return done;
+    }
+
+    async getDeployment(id:Guid) : Promise<D1Result<Deployment>> {
+        const deploymentsUri = `/accounts/${this.accountId}/pages/projects/${this.projectName}/deployments/${id}`;
+        const deployments = await this.get<D1Result<Deployment>>(deploymentsUri);       
+        return deployments;       
     }
 }

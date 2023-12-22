@@ -191,9 +191,18 @@ export interface SourceConfig {
     preview_branch_excludes:        any[];
 }
 
+
+export interface DeploymentStage {    
+    name: string;
+    started_on: Date;
+    ended_on: Date; 
+    status: string;
+}
+
 export interface Deployment {
     id: Guid;
     project_id: Guid;
     environment: string;
     created_on: Date;
+    stages: DeploymentStage[]
 }
